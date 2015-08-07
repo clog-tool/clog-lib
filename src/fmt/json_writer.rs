@@ -18,7 +18,7 @@ use sectionmap::SectionMap;
 /// # use std::fs::File;
 /// # use clog::{SectionMap, Clog};
 /// # use clog::fmt::JsonWriter;
-/// let clog = Clog::new().unwrap_or_else(|e| { 
+/// let clog = Clog::new().unwrap_or_else(|e| {
 ///     e.exit();
 /// });
 ///
@@ -31,9 +31,9 @@ use sectionmap::SectionMap;
 ///
 /// // Create the JSON Writer
 /// let mut writer = JsonWriter::new(&mut file);
-/// 
+///
 /// // Use the JsonWriter to write the changelog
-/// clog.write_changelog_with(&mut writer).unwrap_or_else(|e| { 
+/// clog.write_changelog_with(&mut writer).unwrap_or_else(|e| {
 ///     e.exit();
 /// });
 /// ```
@@ -49,7 +49,7 @@ impl<'a> JsonWriter<'a> {
     /// # use std::io::{stdout, BufWriter};
     /// # use clog::Clog;
     /// # use clog::fmt::JsonWriter;
-    /// let clog = Clog::new().unwrap_or_else(|e| { 
+    /// let clog = Clog::new().unwrap_or_else(|e| {
     ///     e.exit();
     /// });
     ///
@@ -94,18 +94,21 @@ impl<'a> JsonWriter<'a> {
         }
     }
 
-    /// Writes a particular section of a changelog 
+    /// Writes a particular section of a changelog
     fn write_section(&mut self, options: &Clog, section: &BTreeMap<&String, &Vec<Commit>>)
                             -> WriterResult {
-        if section.len() == 0 { 
+        if section.len() == 0 {
             write!(self.0, "\"commits\":null").unwrap();
-            return Ok(()) 
+            return Ok(())
         }
 
         write!(self.0, "\"commits\":[").unwrap();
-        for (component, entries) in section.iter() {
+        let mut s_it = section.iter().peekable();
+        while let Some((component, entries)) = s_it.next() {
             let mut e_it = entries.iter().peekable();
+            debugln!("Writing component: {}", &*component);
             while let Some(entry) = e_it.next() {
+                debugln!("Writing commit: {}", &*entry.subject);
                 write!(self.0, "{{\"component\":").unwrap();
                 if component.is_empty() {
                     write!(self.0, "null,").unwrap();
@@ -117,7 +120,7 @@ impl<'a> JsonWriter<'a> {
                     entry.subject,
                     options.link_style
                            .commit_link(&*entry.hash, &*options.repo)
-                ).unwrap(); 
+                ).unwrap();
 
                 if entry.closes.len() > 0 {
                     write!(self.0, "[").unwrap();
@@ -129,7 +132,10 @@ impl<'a> JsonWriter<'a> {
                             options.link_style.issue_link(issue, &options.repo)
                         ).unwrap();
                         if c_it.peek().is_some() {
+                            debugln!("There are more close commits, adding comma");
                             write!(self.0, ",").unwrap();
+                        } else {
+                            debugln!("There are no more close commits, no comma required");
                         }
                     }
                     write!(self.0,
@@ -138,8 +144,17 @@ impl<'a> JsonWriter<'a> {
                     write!(self.0, "null}}").unwrap();
                 }
                 if e_it.peek().is_some() {
+                    debugln!("There are more commits, adding comma");
                     write!(self.0, ",").unwrap();
+                } else {
+                    debugln!("There are no more commits, no comma required");
                 }
+            }
+            if s_it.peek().is_some() {
+                debugln!("There are more sections, adding comma");
+                write!(self.0, ",").unwrap();
+            } else {
+                debugln!("There are no more commits, no comma required");
             }
         }
         write!(self.0, "]").unwrap();
@@ -174,7 +189,7 @@ impl<'a> FormatWriter for JsonWriter<'a> {
                 try!(self.write_section(options, &compmap.iter().collect::<BTreeMap<_,_>>()));
 
                 write!(self.0, "}}").unwrap();
-                if s_it.peek().is_some() && s_it.peek().unwrap().0.len() > 0 {
+                if s_it.peek().is_some() { //&& s_it.peek().unwrap().0.len() > 0 {
                     debugln!("There are more sections, adding comma");
                     write!(self.0, ",").unwrap();
                 } else {
@@ -190,6 +205,7 @@ impl<'a> FormatWriter for JsonWriter<'a> {
         write!(self.0, "}}").unwrap();
         debugln!("Finished writing sections, flushing");
         self.0.flush().unwrap();
+
         Ok(())
     }
 }
