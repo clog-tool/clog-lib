@@ -45,7 +45,7 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-3389' class='srclink' href='../src/clog/clog.rs.html#104-143' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-2730' class='srclink' href='../src/clog/clog.rs.html#35-74' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>pub struct Clog {
     pub grep: <a class='struct' href='http://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a>,
     pub format: <a class='struct' href='http://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a>,
@@ -181,18 +181,6 @@ vice versa.</p>
     <span class='ident'>e</span>.<span class='ident'>exit</span>();
 });
 </pre>
-</div><h4 id='method.from_matches' class='method'><code>fn <a href='#method.from_matches' class='fnname'>from_matches</a>(matches: &amp;ArgMatches) -&gt; BuilderResult</code></h4>
-<div class='docblock'><p>Creates a <code>Clog</code> struct from command line <code>clap::ArgMatches</code></p>
-
-<h1 id="example" class='section-header'><a
-                           href="#example">Example</a></h1><pre id='rust-example-rendered' class='rust '>
-
-<span class='kw'>let</span> <span class='ident'>matches</span> <span class='op'>=</span> <span class='comment'>// clap settings...</span>
-
-<span class='kw'>let</span> <span class='ident'>clog</span> <span class='op'>=</span> <span class='ident'>Clog</span>::<span class='ident'>from_matches</span>(<span class='ident'>matches</span>).<span class='ident'>unwrap_or_else</span>(<span class='op'>|</span><span class='ident'>e</span><span class='op'>|</span> {
-    <span class='ident'>e</span>.<span class='ident'>exit</span>();
-});
-</pre>
 </div><h4 id='method.grep' class='method'><code>fn <a href='#method.grep' class='fnname'>grep</a>&lt;S: <a class='trait' href='http://doc.rust-lang.org/nightly/core/convert/trait.Into.html' title='core::convert::Into'>Into</a>&lt;<a class='struct' href='http://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a>&gt;&gt;(&amp;mut self, g: S) -&gt; &amp;mut <a class='struct' href='../clog/struct.Clog.html' title='clog::Clog'>Clog</a></code></h4>
 <div class='docblock'><p>Sets the grep search pattern for finding commits.</p>
 
@@ -201,7 +189,7 @@ vice versa.</p>
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>clog</span> <span class='op'>=</span> <span class='ident'>Clog</span>::<span class='ident'>new</span>().<span class='ident'>unwrap_or_else</span>(<span class='op'>|</span><span class='ident'>e</span><span class='op'>|</span> {
     <span class='ident'>e</span>.<span class='ident'>exit</span>();
 });
- 
+
 <span class='ident'>clog</span>.<span class='ident'>grep</span>(<span class='string'>&quot;BREAKS&quot;</span>);
 </pre>
 </div><h4 id='method.format' class='method'><code>fn <a href='#method.format' class='fnname'>format</a>&lt;S: <a class='trait' href='http://doc.rust-lang.org/nightly/core/convert/trait.Into.html' title='core::convert::Into'>Into</a>&lt;<a class='struct' href='http://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a>&gt;&gt;(&amp;mut self, f: S) -&gt; &amp;mut <a class='struct' href='../clog/struct.Clog.html' title='clog::Clog'>Clog</a></code></h4>
@@ -212,7 +200,7 @@ vice versa.</p>
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>clog</span> <span class='op'>=</span> <span class='ident'>Clog</span>::<span class='ident'>new</span>().<span class='ident'>unwrap_or_else</span>(<span class='op'>|</span><span class='ident'>e</span><span class='op'>|</span> {
     <span class='ident'>e</span>.<span class='ident'>exit</span>();
 });
- 
+
 <span class='ident'>clog</span>.<span class='ident'>format</span>(<span class='string'>&quot;%H%n%n==END==&quot;</span>);
 </pre>
 </div><h4 id='method.repository' class='method'><code>fn <a href='#method.repository' class='fnname'>repository</a>&lt;S: <a class='trait' href='http://doc.rust-lang.org/nightly/core/convert/trait.Into.html' title='core::convert::Into'>Into</a>&lt;<a class='struct' href='http://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a>&gt;&gt;(&amp;mut self, r: S) -&gt; &amp;mut <a class='struct' href='../clog/struct.Clog.html' title='clog::Clog'>Clog</a></code></h4>
@@ -227,7 +215,7 @@ vice versa.</p>
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>clog</span> <span class='op'>=</span> <span class='ident'>Clog</span>::<span class='ident'>new</span>().<span class='ident'>unwrap_or_else</span>(<span class='op'>|</span><span class='ident'>e</span><span class='op'>|</span> {
     <span class='ident'>e</span>.<span class='ident'>exit</span>();
 });
- 
+
 <span class='ident'>clog</span>.<span class='ident'>repository</span>(<span class='string'>&quot;https://github.com/thoughtram/clog&quot;</span>);
 </pre>
 </div><h4 id='method.link_style' class='method'><code>fn <a href='#method.link_style' class='fnname'>link_style</a>(&amp;mut self, l: <a class='enum' href='../clog/enum.LinkStyle.html' title='clog::LinkStyle'>LinkStyle</a>) -&gt; &amp;mut <a class='struct' href='../clog/struct.Clog.html' title='clog::Clog'>Clog</a></code></h4>
@@ -240,7 +228,7 @@ vice versa.</p>
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>clog</span> <span class='op'>=</span> <span class='ident'>Clog</span>::<span class='ident'>new</span>().<span class='ident'>unwrap_or_else</span>(<span class='op'>|</span><span class='ident'>e</span><span class='op'>|</span> {
     <span class='ident'>e</span>.<span class='ident'>exit</span>();
 });
- 
+
 <span class='ident'>clog</span>.<span class='ident'>link_style</span>(<span class='ident'>LinkStyle</span>::<span class='ident'>Stash</span>);
 </pre>
 </div><h4 id='method.version' class='method'><code>fn <a href='#method.version' class='fnname'>version</a>&lt;S: <a class='trait' href='http://doc.rust-lang.org/nightly/core/convert/trait.Into.html' title='core::convert::Into'>Into</a>&lt;<a class='struct' href='http://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a>&gt;&gt;(&amp;mut self, v: S) -&gt; &amp;mut <a class='struct' href='../clog/struct.Clog.html' title='clog::Clog'>Clog</a></code></h4>
@@ -253,7 +241,7 @@ vice versa.</p>
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>clog</span> <span class='op'>=</span> <span class='ident'>Clog</span>::<span class='ident'>new</span>().<span class='ident'>unwrap_or_else</span>(<span class='op'>|</span><span class='ident'>e</span><span class='op'>|</span> {
     <span class='ident'>e</span>.<span class='ident'>exit</span>();
 });
- 
+
 <span class='ident'>clog</span>.<span class='ident'>version</span>(<span class='string'>&quot;v0.2.1-beta3&quot;</span>);
 </pre>
 </div><h4 id='method.subtitle' class='method'><code>fn <a href='#method.subtitle' class='fnname'>subtitle</a>&lt;S: <a class='trait' href='http://doc.rust-lang.org/nightly/core/convert/trait.Into.html' title='core::convert::Into'>Into</a>&lt;<a class='struct' href='http://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a>&gt;&gt;(&amp;mut self, s: S) -&gt; &amp;mut <a class='struct' href='../clog/struct.Clog.html' title='clog::Clog'>Clog</a></code></h4>
@@ -264,7 +252,7 @@ vice versa.</p>
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>clog</span> <span class='op'>=</span> <span class='ident'>Clog</span>::<span class='ident'>new</span>().<span class='ident'>unwrap_or_else</span>(<span class='op'>|</span><span class='ident'>e</span><span class='op'>|</span> {
     <span class='ident'>e</span>.<span class='ident'>exit</span>();
 });
- 
+
 <span class='ident'>clog</span>.<span class='ident'>subtitle</span>(<span class='string'>&quot;My Awesome Release Title&quot;</span>);
 </pre>
 </div><h4 id='method.from' class='method'><code>fn <a href='#method.from' class='fnname'>from</a>&lt;S: <a class='trait' href='http://doc.rust-lang.org/nightly/core/convert/trait.Into.html' title='core::convert::Into'>Into</a>&lt;<a class='struct' href='http://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a>&gt;&gt;(&amp;mut self, f: S) -&gt; &amp;mut <a class='struct' href='../clog/struct.Clog.html' title='clog::Clog'>Clog</a></code></h4>
@@ -277,7 +265,7 @@ vice versa.</p>
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>clog</span> <span class='op'>=</span> <span class='ident'>Clog</span>::<span class='ident'>new</span>().<span class='ident'>unwrap_or_else</span>(<span class='op'>|</span><span class='ident'>e</span><span class='op'>|</span> {
     <span class='ident'>e</span>.<span class='ident'>exit</span>();
 });
- 
+
 <span class='ident'>clog</span>.<span class='ident'>from</span>(<span class='string'>&quot;6d8183f&quot;</span>);
 </pre>
 </div><h4 id='method.to' class='method'><code>fn <a href='#method.to' class='fnname'>to</a>&lt;S: <a class='trait' href='http://doc.rust-lang.org/nightly/core/convert/trait.Into.html' title='core::convert::Into'>Into</a>&lt;<a class='struct' href='http://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a>&gt;&gt;(&amp;mut self, t: S) -&gt; &amp;mut <a class='struct' href='../clog/struct.Clog.html' title='clog::Clog'>Clog</a></code></h4>
@@ -289,7 +277,7 @@ vice versa.</p>
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>clog</span> <span class='op'>=</span> <span class='ident'>Clog</span>::<span class='ident'>new</span>().<span class='ident'>unwrap_or_else</span>(<span class='op'>|</span><span class='ident'>e</span><span class='op'>|</span> {
     <span class='ident'>e</span>.<span class='ident'>exit</span>();
 });
- 
+
 <span class='ident'>clog</span>.<span class='ident'>to</span>(<span class='string'>&quot;123abc4d&quot;</span>);
 </pre>
 </div><h4 id='method.changelog' class='method'><code>fn <a href='#method.changelog' class='fnname'>changelog</a>&lt;S: <a class='trait' href='http://doc.rust-lang.org/nightly/core/convert/trait.Into.html' title='core::convert::Into'>Into</a>&lt;<a class='struct' href='http://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a>&gt; + <a class='trait' href='http://doc.rust-lang.org/nightly/core/clone/trait.Clone.html' title='core::clone::Clone'>Clone</a>&gt;(&amp;mut self, c: S) -&gt; &amp;mut <a class='struct' href='../clog/struct.Clog.html' title='clog::Clog'>Clog</a></code></h4>
@@ -302,7 +290,7 @@ vice versa.</p>
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>clog</span> <span class='op'>=</span> <span class='ident'>Clog</span>::<span class='ident'>new</span>().<span class='ident'>unwrap_or_else</span>(<span class='op'>|</span><span class='ident'>e</span><span class='op'>|</span> {
     <span class='ident'>e</span>.<span class='ident'>exit</span>();
 });
- 
+
 <span class='ident'>clog</span>.<span class='ident'>changelog</span>(<span class='string'>&quot;/myproject/my_changelog.md&quot;</span>);
 </pre>
 </div><h4 id='method.outfile' class='method'><code>fn <a href='#method.outfile' class='fnname'>outfile</a>&lt;S: <a class='trait' href='http://doc.rust-lang.org/nightly/core/convert/trait.Into.html' title='core::convert::Into'>Into</a>&lt;<a class='struct' href='http://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a>&gt;&gt;(&amp;mut self, c: S) -&gt; &amp;mut <a class='struct' href='../clog/struct.Clog.html' title='clog::Clog'>Clog</a></code></h4>
@@ -319,12 +307,12 @@ commits from one place and output to another.</p>
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>clog</span> <span class='op'>=</span> <span class='ident'>Clog</span>::<span class='ident'>new</span>().<span class='ident'>unwrap_or_else</span>(<span class='op'>|</span><span class='ident'>e</span><span class='op'>|</span> {
     <span class='ident'>e</span>.<span class='ident'>exit</span>();
 });
- 
+
 <span class='ident'>clog</span>.<span class='ident'>outfile</span>(<span class='string'>&quot;/myproject/my_changelog.md&quot;</span>);
 </pre>
 </div><h4 id='method.infile' class='method'><code>fn <a href='#method.infile' class='fnname'>infile</a>&lt;S: <a class='trait' href='http://doc.rust-lang.org/nightly/core/convert/trait.Into.html' title='core::convert::Into'>Into</a>&lt;<a class='struct' href='http://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a>&gt;&gt;(&amp;mut self, c: S) -&gt; &amp;mut <a class='struct' href='../clog/struct.Clog.html' title='clog::Clog'>Clog</a></code></h4>
 <div class='docblock'><p>Sets the changelog input file to read previous commits or changelog data from. This is
-useful inconjunction with <code>Clog::infile()</code> because it allows to read previous commits from 
+useful inconjunction with <code>Clog::infile()</code> because it allows to read previous commits from
 one place and output to another.</p>
 
 <p><strong>NOTE:</strong> Anything set here will override anything in a configuration TOML file</p>
@@ -336,7 +324,7 @@ one place and output to another.</p>
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>clog</span> <span class='op'>=</span> <span class='ident'>Clog</span>::<span class='ident'>new</span>().<span class='ident'>unwrap_or_else</span>(<span class='op'>|</span><span class='ident'>e</span><span class='op'>|</span> {
     <span class='ident'>e</span>.<span class='ident'>exit</span>();
 });
- 
+
 <span class='ident'>clog</span>.<span class='ident'>infile</span>(<span class='string'>&quot;/myproject/my_old_changelog.md&quot;</span>);
 </pre>
 </div><h4 id='method.git_dir' class='method'><code>fn <a href='#method.git_dir' class='fnname'>git_dir</a>&lt;P: <a class='trait' href='http://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html' title='core::convert::AsRef'>AsRef</a>&lt;<a class='struct' href='http://doc.rust-lang.org/nightly/std/path/struct.Path.html' title='std::path::Path'>Path</a>&gt;&gt;(&amp;mut self, d: P) -&gt; &amp;mut <a class='struct' href='../clog/struct.Clog.html' title='clog::Clog'>Clog</a></code></h4>
@@ -347,7 +335,7 @@ one place and output to another.</p>
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>clog</span> <span class='op'>=</span> <span class='ident'>Clog</span>::<span class='ident'>new</span>().<span class='ident'>unwrap_or_else</span>(<span class='op'>|</span><span class='ident'>e</span><span class='op'>|</span> {
     <span class='ident'>e</span>.<span class='ident'>exit</span>();
 });
- 
+
 <span class='ident'>clog</span>.<span class='ident'>git_dir</span>(<span class='string'>&quot;/myproject/.git&quot;</span>);
 </pre>
 </div><h4 id='method.git_work_tree' class='method'><code>fn <a href='#method.git_work_tree' class='fnname'>git_work_tree</a>&lt;P: <a class='trait' href='http://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html' title='core::convert::AsRef'>AsRef</a>&lt;<a class='struct' href='http://doc.rust-lang.org/nightly/std/path/struct.Path.html' title='std::path::Path'>Path</a>&gt;&gt;(&amp;mut self, d: P) -&gt; &amp;mut <a class='struct' href='../clog/struct.Clog.html' title='clog::Clog'>Clog</a></code></h4>
@@ -358,7 +346,7 @@ one place and output to another.</p>
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>clog</span> <span class='op'>=</span> <span class='ident'>Clog</span>::<span class='ident'>new</span>().<span class='ident'>unwrap_or_else</span>(<span class='op'>|</span><span class='ident'>e</span><span class='op'>|</span> {
     <span class='ident'>e</span>.<span class='ident'>exit</span>();
 });
- 
+
 <span class='ident'>clog</span>.<span class='ident'>git_work_tree</span>(<span class='string'>&quot;/myproject&quot;</span>);
 </pre>
 </div><h4 id='method.patch_ver' class='method'><code>fn <a href='#method.patch_ver' class='fnname'>patch_ver</a>(&amp;mut self, p: <a href='http://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a>) -&gt; &amp;mut <a class='struct' href='../clog/struct.Clog.html' title='clog::Clog'>Clog</a></code></h4>
@@ -372,7 +360,7 @@ heading</p>
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>clog</span> <span class='op'>=</span> <span class='ident'>Clog</span>::<span class='ident'>new</span>().<span class='ident'>unwrap_or_else</span>(<span class='op'>|</span><span class='ident'>e</span><span class='op'>|</span> {
     <span class='ident'>e</span>.<span class='ident'>exit</span>();
 });
- 
+
 <span class='ident'>clog</span>.<span class='ident'>patch_ver</span>(<span class='boolval'>true</span>);
 </pre>
 </div><h4 id='method.output_format' class='method'><code>fn <a href='#method.output_format' class='fnname'>output_format</a>(&amp;mut self, f: <a class='enum' href='../clog/fmt/enum.ChangelogFormat.html' title='clog::fmt::ChangelogFormat'>ChangelogFormat</a>) -&gt; &amp;mut <a class='struct' href='../clog/struct.Clog.html' title='clog::Clog'>Clog</a></code></h4>
@@ -383,7 +371,7 @@ heading</p>
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>clog</span> <span class='op'>=</span> <span class='ident'>Clog</span>::<span class='ident'>new</span>().<span class='ident'>unwrap_or_else</span>(<span class='op'>|</span><span class='ident'>e</span><span class='op'>|</span> {
     <span class='ident'>e</span>.<span class='ident'>exit</span>();
 });
- 
+
 <span class='ident'>clog</span>.<span class='ident'>output_format</span>(<span class='ident'>ChangelogFormat</span>::<span class='ident'>Json</span>);
 </pre>
 </div><h4 id='method.get_commits' class='method'><code>fn <a href='#method.get_commits' class='fnname'>get_commits</a>(&amp;self) -&gt; <a class='type' href='../clog/git/type.Commits.html' title='clog::git::Commits'>Commits</a></code></h4>
@@ -394,7 +382,7 @@ heading</p>
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>clog</span> <span class='op'>=</span> <span class='ident'>Clog</span>::<span class='ident'>new</span>().<span class='ident'>unwrap_or_else</span>(<span class='op'>|</span><span class='ident'>e</span><span class='op'>|</span> {
     <span class='ident'>e</span>.<span class='ident'>exit</span>();
 });
- 
+
 <span class='kw'>let</span> <span class='ident'>commits</span> <span class='op'>=</span> <span class='ident'>clog</span>.<span class='ident'>get_commits</span>();
 </pre>
 </div><h4 id='method.get_latest_tag' class='method'><code>fn <a href='#method.get_latest_tag' class='fnname'>get_latest_tag</a>(&amp;self) -&gt; <a class='struct' href='http://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a></code></h4>
@@ -405,7 +393,7 @@ heading</p>
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>clog</span> <span class='op'>=</span> <span class='ident'>Clog</span>::<span class='ident'>new</span>().<span class='ident'>unwrap_or_else</span>(<span class='op'>|</span><span class='ident'>e</span><span class='op'>|</span> {
     <span class='ident'>e</span>.<span class='ident'>exit</span>();
 });
- 
+
 <span class='kw'>let</span> <span class='ident'>tag</span> <span class='op'>=</span> <span class='ident'>clog</span>.<span class='ident'>get_latest_tag</span>();
 </pre>
 </div><h4 id='method.get_latest_tag_ver' class='method'><code>fn <a href='#method.get_latest_tag_ver' class='fnname'>get_latest_tag_ver</a>(&amp;self) -&gt; <a class='struct' href='http://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a></code></h4>
@@ -416,7 +404,7 @@ heading</p>
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>clog</span> <span class='op'>=</span> <span class='ident'>Clog</span>::<span class='ident'>new</span>().<span class='ident'>unwrap_or_else</span>(<span class='op'>|</span><span class='ident'>e</span><span class='op'>|</span> {
     <span class='ident'>e</span>.<span class='ident'>exit</span>();
 });
- 
+
 <span class='kw'>let</span> <span class='ident'>tag_ver</span> <span class='op'>=</span> <span class='ident'>clog</span>.<span class='ident'>get_latest_tag_ver</span>();
 </pre>
 </div><h4 id='method.get_last_commit' class='method'><code>fn <a href='#method.get_last_commit' class='fnname'>get_last_commit</a>(&amp;self) -&gt; <a class='struct' href='http://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a></code></h4>
@@ -427,7 +415,7 @@ heading</p>
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>clog</span> <span class='op'>=</span> <span class='ident'>Clog</span>::<span class='ident'>new</span>().<span class='ident'>unwrap_or_else</span>(<span class='op'>|</span><span class='ident'>e</span><span class='op'>|</span> {
     <span class='ident'>e</span>.<span class='ident'>exit</span>();
 });
- 
+
 <span class='kw'>let</span> <span class='ident'>head_hash</span> <span class='op'>=</span> <span class='ident'>clog</span>.<span class='ident'>get_last_commit</span>();
 </pre>
 </div><h4 id='method.section_for' class='method'><code>fn <a href='#method.section_for' class='fnname'>section_for</a>(&amp;self, alias: &amp;<a href='http://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>) -&gt; &amp;<a class='struct' href='http://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a></code></h4>
@@ -438,7 +426,7 @@ heading</p>
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>clog</span> <span class='op'>=</span> <span class='ident'>Clog</span>::<span class='ident'>new</span>().<span class='ident'>unwrap_or_else</span>(<span class='op'>|</span><span class='ident'>e</span><span class='op'>|</span> {
     <span class='ident'>e</span>.<span class='ident'>exit</span>();
 });
- 
+
 <span class='kw'>let</span> <span class='ident'>section</span> <span class='op'>=</span> <span class='ident'>clog</span>.<span class='ident'>section_for</span>(<span class='string'>&quot;feat&quot;</span>);
 <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='string'>&quot;Features&quot;</span>, <span class='ident'>section</span>);
 </pre>
@@ -450,7 +438,7 @@ heading</p>
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>clog</span> <span class='op'>=</span> <span class='ident'>Clog</span>::<span class='ident'>new</span>().<span class='ident'>unwrap_or_else</span>(<span class='op'>|</span><span class='ident'>e</span><span class='op'>|</span> {
     <span class='ident'>e</span>.<span class='ident'>exit</span>();
 });
- 
+
 <span class='ident'>clog</span>.<span class='ident'>write_changelog</span>();
 </pre>
 </div><h4 id='method.write_changelog_to' class='method'><code>fn <a href='#method.write_changelog_to' class='fnname'>write_changelog_to</a>&lt;P: <a class='trait' href='http://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html' title='core::convert::AsRef'>AsRef</a>&lt;<a class='struct' href='http://doc.rust-lang.org/nightly/std/path/struct.Path.html' title='std::path::Path'>Path</a>&gt;&gt;(&amp;self, cl: P) -&gt; <a class='type' href='../clog/fmt/type.WriterResult.html' title='clog::fmt::WriterResult'>WriterResult</a></code></h4>
@@ -460,7 +448,7 @@ creates the file if it doesn&#39;t.</p>
 <h1 id="example" class='section-header'><a
                            href="#example">Example</a></h1><pre id='rust-example-rendered' class='rust '>
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>clog</span> <span class='op'>=</span> <span class='ident'>Clog</span>::<span class='ident'>new</span>().<span class='ident'>unwrap_or_else</span>(<span class='op'>|</span><span class='ident'>e</span><span class='op'>|</span> <span class='ident'>e</span>.<span class='ident'>exit</span>());
- 
+
 <span class='ident'>clog</span>.<span class='ident'>write_changelog_to</span>(<span class='string'>&quot;/myproject/new_changelog.md&quot;</span>).<span class='ident'>unwrap_or_else</span>(<span class='op'>|</span><span class='ident'>e</span><span class='op'>|</span> {
     <span class='comment'>// Prints the error and exits appropriately</span>
     <span class='ident'>e</span>.<span class='ident'>exit</span>();
@@ -472,7 +460,7 @@ creates the file if it doesn&#39;t.</p>
 <h1 id="example" class='section-header'><a
                            href="#example">Example</a></h1><pre id='rust-example-rendered' class='rust '>
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>clog</span> <span class='op'>=</span> <span class='ident'>Clog</span>::<span class='ident'>new</span>().<span class='ident'>unwrap_or_else</span>(<span class='op'>|</span><span class='ident'>e</span><span class='op'>|</span> <span class='ident'>e</span>.<span class='ident'>exit</span>());
- 
+
 <span class='ident'>clog</span>.<span class='ident'>write_changelog_from</span>(<span class='string'>&quot;/myproject/new_old_changelog.md&quot;</span>).<span class='ident'>unwrap_or_else</span>(<span class='op'>|</span><span class='ident'>e</span><span class='op'>|</span> {
     <span class='comment'>// Prints the error and exits appropriately</span>
     <span class='ident'>e</span>.<span class='ident'>exit</span>();
@@ -483,7 +471,7 @@ creates the file if it doesn&#39;t.</p>
 
 <h1 id="examples" class='section-header'><a
                            href="#examples">Examples</a></h1><pre id='rust-example-rendered' class='rust '>
-<span class='kw'>let</span> <span class='ident'>clog</span> <span class='op'>=</span> <span class='ident'>Clog</span>::<span class='ident'>new</span>().<span class='ident'>unwrap_or_else</span>(<span class='op'>|</span><span class='ident'>e</span><span class='op'>|</span> { 
+<span class='kw'>let</span> <span class='ident'>clog</span> <span class='op'>=</span> <span class='ident'>Clog</span>::<span class='ident'>new</span>().<span class='ident'>unwrap_or_else</span>(<span class='op'>|</span><span class='ident'>e</span><span class='op'>|</span> {
     <span class='ident'>e</span>.<span class='ident'>exit</span>();
 });
 

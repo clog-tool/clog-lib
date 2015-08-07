@@ -325,12 +325,12 @@
             <span class='kw'>let</span> <span class='ident'>nested</span> <span class='op'>=</span> (<span class='ident'>entries</span>.<span class='ident'>len</span>() <span class='op'>&gt;</span> <span class='number'>1</span>) <span class='op'>&amp;&amp;</span> <span class='op'>!</span><span class='ident'>component</span>.<span class='ident'>is_empty</span>();
 
             <span class='kw'>let</span> <span class='ident'>prefix</span> <span class='op'>=</span> <span class='kw'>if</span> <span class='ident'>nested</span> {
-                <span class='kw'>if</span> <span class='kw'>let</span> <span class='prelude-val'>Err</span>(..) <span class='op'>=</span> <span class='macro'>write</span><span class='macro'>!</span>(<span class='self'>self</span>.<span class='number'>0</span> , <span class='string'>&quot;* **{}**\n&quot;</span>, <span class='ident'>component</span>) {
+                <span class='kw'>if</span> <span class='kw'>let</span> <span class='prelude-val'>Err</span>(..) <span class='op'>=</span> <span class='macro'>write</span><span class='macro'>!</span>(<span class='self'>self</span>.<span class='number'>0</span> , <span class='string'>&quot;* **{}:**\n&quot;</span>, <span class='ident'>component</span>) {
                     <span class='kw'>return</span> <span class='prelude-val'>Err</span>(<span class='ident'>Error</span>::<span class='ident'>WriteErr</span>);
                 }
                 <span class='string'>&quot;  *&quot;</span>.<span class='ident'>to_owned</span>()
             } <span class='kw'>else</span> <span class='kw'>if</span> <span class='op'>!</span><span class='ident'>component</span>.<span class='ident'>is_empty</span>() {
-                <span class='macro'>format</span><span class='macro'>!</span>(<span class='string'>&quot;* **{}**&quot;</span>, <span class='ident'>component</span>)
+                <span class='macro'>format</span><span class='macro'>!</span>(<span class='string'>&quot;* **{}:**&quot;</span>, <span class='ident'>component</span>)
             } <span class='kw'>else</span> {
                 <span class='macro'>format</span><span class='macro'>!</span>(<span class='string'>&quot;* &quot;</span>)
             };

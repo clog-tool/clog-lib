@@ -105,7 +105,7 @@
 <span class='kw'>use</span> <span class='ident'>error</span>::<span class='ident'>Error</span>;
 <span class='kw'>use</span> <span class='ident'>sectionmap</span>::<span class='ident'>SectionMap</span>;
 
-<span class='macro'>arg_enum</span><span class='macro'>!</span> {
+<span class='macro'>clog_enum</span><span class='macro'>!</span> {
     <span class='attribute'>#[<span class='ident'>derive</span>(<span class='ident'>Debug</span>)]</span>
     <span class='kw'>pub</span> <span class='kw'>enum</span> <span class='ident'>ChangelogFormat</span> {
         <span class='ident'>Json</span>,
@@ -122,7 +122,7 @@
 <span class='doccomment'>/// # use clog::Clog;</span>
 <span class='doccomment'>/// # use clog::fmt::{FormatWriter, MarkdownWriter};</span>
 <span class='doccomment'>/// # use std::io;</span>
-<span class='doccomment'>/// let clog = Clog::new().unwrap_or_else(|e| { </span>
+<span class='doccomment'>/// let clog = Clog::new().unwrap_or_else(|e| {</span>
 <span class='doccomment'>///     e.exit();</span>
 <span class='doccomment'>/// });</span>
 <span class='doccomment'>///</span>
@@ -130,7 +130,7 @@
 <span class='doccomment'>/// let out = io::stdout();</span>
 <span class='doccomment'>/// let mut out_buf = io::BufWriter::new(out.lock());</span>
 <span class='doccomment'>/// let mut writer = MarkdownWriter::new(&amp;mut out_buf);</span>
-<span class='doccomment'>/// </span>
+<span class='doccomment'>///</span>
 <span class='doccomment'>/// clog.write_changelog_with(&amp;mut writer).unwrap_or_else(|e| {</span>
 <span class='doccomment'>///     // Prints the WriterResult error and exits appropriately</span>
 <span class='doccomment'>///     e.exit();</span>
@@ -142,10 +142,10 @@
 <span class='doccomment'>/// arbitrary format. The single required function `write_changelog()` accepts a `clog::SectionMap`</span>
 <span class='doccomment'>/// which can be thought of similiar to a `clog` &quot;AST&quot; of sorts.</span>
 <span class='doccomment'>///</span>
-<span class='doccomment'>/// `clog` provides two default implementors of this traint, `clog::fmt::MarkdownWriter` and </span>
+<span class='doccomment'>/// `clog` provides two default implementors of this traint, `clog::fmt::MarkdownWriter` and</span>
 <span class='doccomment'>/// `clog::fmt::JsonWriter` for writing Markdown and JSON respectively</span>
 <span class='kw'>pub</span> <span class='kw'>trait</span> <span class='ident'>FormatWriter</span> {
-    <span class='doccomment'>/// Writes a changelog from a given `clog::SectionMap` which can be thought of as an &quot;AST&quot; of </span>
+    <span class='doccomment'>/// Writes a changelog from a given `clog::SectionMap` which can be thought of as an &quot;AST&quot; of</span>
     <span class='doccomment'>/// sorts</span>
     <span class='kw'>fn</span> <span class='ident'>write_changelog</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>options</span>: <span class='kw-2'>&amp;</span><span class='ident'>Clog</span>, <span class='ident'>section_map</span>: <span class='kw-2'>&amp;</span><span class='ident'>SectionMap</span>) <span class='op'>-&gt;</span> <span class='ident'>WriterResult</span>;
 }

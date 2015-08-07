@@ -45,12 +45,12 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-2592' class='srclink' href='../../src/clog/fmt/mod.rs.html#42' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-2590' class='srclink' href='../../src/clog/fmt/mod.rs.html#42' title='goto source code'>[src]</a></span></h1>
 <pre class='rust typedef'>type WriterResult = <a class='enum' href='http://doc.rust-lang.org/nightly/core/result/enum.Result.html' title='core::result::Result'>Result</a>&lt;<a href='http://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>, <a class='enum' href='../../clog/error/enum.Error.html' title='clog::error::Error'>Error</a>&gt;;</pre><div class='docblock'><p>Convienience type for returning results of writing a changelog with a <code>Clog</code> struct</p>
 
 <h1 id="example" class='section-header'><a
                            href="#example">Example</a></h1><pre id='rust-example-rendered' class='rust '>
-<span class='kw'>let</span> <span class='ident'>clog</span> <span class='op'>=</span> <span class='ident'>Clog</span>::<span class='ident'>new</span>().<span class='ident'>unwrap_or_else</span>(<span class='op'>|</span><span class='ident'>e</span><span class='op'>|</span> { 
+<span class='kw'>let</span> <span class='ident'>clog</span> <span class='op'>=</span> <span class='ident'>Clog</span>::<span class='ident'>new</span>().<span class='ident'>unwrap_or_else</span>(<span class='op'>|</span><span class='ident'>e</span><span class='op'>|</span> {
     <span class='ident'>e</span>.<span class='ident'>exit</span>();
 });
 
@@ -58,7 +58,7 @@
 <span class='kw'>let</span> <span class='ident'>out</span> <span class='op'>=</span> <span class='ident'>io</span>::<span class='ident'>stdout</span>();
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>out_buf</span> <span class='op'>=</span> <span class='ident'>io</span>::<span class='ident'>BufWriter</span>::<span class='ident'>new</span>(<span class='ident'>out</span>.<span class='ident'>lock</span>());
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>writer</span> <span class='op'>=</span> <span class='ident'>MarkdownWriter</span>::<span class='ident'>new</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>out_buf</span>);
- 
+
 <span class='ident'>clog</span>.<span class='ident'>write_changelog_with</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>writer</span>).<span class='ident'>unwrap_or_else</span>(<span class='op'>|</span><span class='ident'>e</span><span class='op'>|</span> {
     <span class='comment'>// Prints the WriterResult error and exits appropriately</span>
     <span class='ident'>e</span>.<span class='ident'>exit</span>();
