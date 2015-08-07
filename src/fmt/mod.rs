@@ -8,7 +8,7 @@ use clog::Clog;
 use error::Error;
 use sectionmap::SectionMap;
 
-arg_enum! {
+clog_enum! {
     #[derive(Debug)]
     pub enum ChangelogFormat {
         Json,
@@ -25,7 +25,7 @@ arg_enum! {
 /// # use clog::Clog;
 /// # use clog::fmt::{FormatWriter, MarkdownWriter};
 /// # use std::io;
-/// let clog = Clog::new().unwrap_or_else(|e| { 
+/// let clog = Clog::new().unwrap_or_else(|e| {
 ///     e.exit();
 /// });
 ///
@@ -33,7 +33,7 @@ arg_enum! {
 /// let out = io::stdout();
 /// let mut out_buf = io::BufWriter::new(out.lock());
 /// let mut writer = MarkdownWriter::new(&mut out_buf);
-/// 
+///
 /// clog.write_changelog_with(&mut writer).unwrap_or_else(|e| {
 ///     // Prints the WriterResult error and exits appropriately
 ///     e.exit();
@@ -45,10 +45,10 @@ pub type WriterResult = Result<(), Error>;
 /// arbitrary format. The single required function `write_changelog()` accepts a `clog::SectionMap`
 /// which can be thought of similiar to a `clog` "AST" of sorts.
 ///
-/// `clog` provides two default implementors of this traint, `clog::fmt::MarkdownWriter` and 
+/// `clog` provides two default implementors of this traint, `clog::fmt::MarkdownWriter` and
 /// `clog::fmt::JsonWriter` for writing Markdown and JSON respectively
 pub trait FormatWriter {
-    /// Writes a changelog from a given `clog::SectionMap` which can be thought of as an "AST" of 
+    /// Writes a changelog from a given `clog::SectionMap` which can be thought of as an "AST" of
     /// sorts
     fn write_changelog(&mut self, options: &Clog, section_map: &SectionMap) -> WriterResult;
 }

@@ -6,10 +6,7 @@
 // DOCS
 
 extern crate regex;
-extern crate semver;
 extern crate toml;
-#[macro_use]
-extern crate clap;
 extern crate time;
 
 #[macro_use]
@@ -19,9 +16,11 @@ pub mod fmt;
 mod sectionmap;
 mod clog;
 pub mod error;
+mod link_style;
 
-pub use clog::{Clog, LinkStyle};
+pub use clog::Clog;
 pub use sectionmap::SectionMap;
+pub use link_style::LinkStyle;
 
 // The default config file
 const CLOG_CONFIG_FILE: &'static str = ".clog.toml";

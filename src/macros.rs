@@ -43,3 +43,203 @@ macro_rules! debug {
     ($fmt:expr) => ();
     ($fmt:expr, $($arg:tt)*) => ();
 }
+
+/// Convenience macro taken from https://github.com/kbknapp/clap-rs to generate more complete enums
+/// with variants to be used as a type when parsing arguments. This enum also provides a
+/// `variants()` function which can be used to retrieve a `Vec<&'static str>` of the variant names.
+///
+/// **NOTE:** Case insensitivity is supported for ASCII characters
+///
+/// **NOTE:** This macro automaically implements std::str::FromStr and std::fmt::Display
+///
+/// These enums support pub (or not) and use of the #[derive()] traits
+///
+///
+/// # Example
+///
+/// ```no_run
+/// clog_enum!{
+///     #[derive(Debug)]
+///     pub enum Foo {
+///         Bar,
+///         Baz,
+///         Qux
+///     }
+/// }
+/// ```
+macro_rules! clog_enum {
+    (enum $e:ident { $($v:ident),+ } ) => {
+        enum $e {
+            $($v),+
+        }
+
+        impl ::std::str::FromStr for $e {
+            type Err = String;
+
+            fn from_str(s: &str) -> Result<Self,Self::Err> {
+                use ::std::ascii::AsciiExt;
+                match s {
+                    $(stringify!($v) |
+                    _ if s.eq_ignore_ascii_case(stringify!($v)) => Ok($e::$v),)+
+                    _                => Err({
+                                            let v = vec![
+                                                $(stringify!($v),)+
+                                            ];
+                                            format!("valid values:{}",
+                                                v.iter().fold(String::new(), |a, i| {
+                                                    a + &format!(" {}", i)[..]
+                                                }))
+                                        })
+                }
+            }
+        }
+
+        impl ::std::fmt::Display for $e {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+                match *self {
+                    $($e::$v => write!(f, stringify!($v)),)+
+                }
+            }
+        }
+
+        impl $e {
+            #[allow(dead_code)]
+            fn variants() -> Vec<&'static str> {
+                vec![
+                    $(stringify!($v),)+
+                ]
+            }
+        }
+    };
+    (pub enum $e:ident { $($v:ident),+ } ) => {
+        pub enum $e {
+            $($v),+
+        }
+
+        impl ::std::str::FromStr for $e {
+            type Err = String;
+
+            fn from_str(s: &str) -> Result<Self,Self::Err> {
+                use ::std::ascii::AsciiExt;
+                match s {
+                    $(stringify!($v) |
+                    _ if s.eq_ignore_ascii_case(stringify!($v)) => Ok($e::$v),)+
+                    _                => Err({
+                                            let v = vec![
+                                                $(stringify!($v),)+
+                                            ];
+                                            format!("valid values:{}",
+                                                v.iter().fold(String::new(), |a, i| {
+                                                    a + &format!(" {}", i)[..]
+                                                }))
+                                        })
+                }
+            }
+        }
+
+        impl ::std::fmt::Display for $e {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+                match *self {
+                    $($e::$v => write!(f, stringify!($v)),)+
+                }
+            }
+        }
+
+        impl $e {
+            #[allow(dead_code)]
+            pub fn variants() -> Vec<&'static str> {
+                vec![
+                    $(stringify!($v),)+
+                ]
+            }
+        }
+    };
+    (#[derive($($d:ident),+)] enum $e:ident { $($v:ident),+ } ) => {
+        #[derive($($d,)+)]
+        enum $e {
+            $($v),+
+        }
+
+        impl ::std::str::FromStr for $e {
+            type Err = String;
+
+            fn from_str(s: &str) -> Result<Self,Self::Err> {
+                use ::std::ascii::AsciiExt;
+                match s {
+                    $(stringify!($v) |
+                    _ if s.eq_ignore_ascii_case(stringify!($v)) => Ok($e::$v),)+
+                    _                => Err({
+                                            let v = vec![
+                                                $(stringify!($v),)+
+                                            ];
+                                            format!("valid values:{}",
+                                                v.iter().fold(String::new(), |a, i| {
+                                                    a + &format!(" {}", i)[..]
+                                                }))
+                                        })
+                }
+            }
+        }
+
+        impl ::std::fmt::Display for $e {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+                match *self {
+                    $($e::$v => write!(f, stringify!($v)),)+
+                }
+            }
+        }
+
+        impl $e {
+            #[allow(dead_code)]
+            pub fn variants() -> Vec<&'static str> {
+                vec![
+                    $(stringify!($v),)+
+                ]
+            }
+        }
+    };
+    (#[derive($($d:ident),+)] pub enum $e:ident { $($v:ident),+ } ) => {
+        #[derive($($d,)+)]
+        pub enum $e {
+            $($v),+
+        }
+
+        impl ::std::str::FromStr for $e {
+            type Err = String;
+
+            fn from_str(s: &str) -> Result<Self,Self::Err> {
+                use ::std::ascii::AsciiExt;
+                match s {
+                    $(stringify!($v) |
+                    _ if s.eq_ignore_ascii_case(stringify!($v)) => Ok($e::$v),)+
+                    _                => Err({
+                                            let v = vec![
+                                                $(stringify!($v),)+
+                                            ];
+                                            format!("valid values:{}",
+                                                v.iter().fold(String::new(), |a, i| {
+                                                    a + &format!(" {}", i)[..]
+                                                }))
+                                        })
+                }
+            }
+        }
+
+        impl ::std::fmt::Display for $e {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+                match *self {
+                    $($e::$v => write!(f, stringify!($v)),)+
+                }
+            }
+        }
+
+        impl $e {
+            #[allow(dead_code)]
+            pub fn variants() -> Vec<&'static str> {
+                vec![
+                    $(stringify!($v),)+
+                ]
+            }
+        }
+    };
+}
