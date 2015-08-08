@@ -15,8 +15,6 @@ pub enum Error {
     TomlReadErr,
     /// Generated when an unrecognized link-style value is used
     LinkStyleErr,
-    /// Generated when a string cannot be parsed to a SemVer value
-    SemVerErr,
     /// Generated when there are errors creating the output file or stream
     CreateFileErr,
     /// Generated when there are errors writing to the changelog output file
@@ -37,8 +35,8 @@ impl Error {
 
     /// Print this error and immediately exit the program.
     ///
-    /// If the error is non-fatal then the error is printed to stdout and the 
-    /// exit status will be `0`. Otherwise, when the error is fatal, the error 
+    /// If the error is non-fatal then the error is printed to stdout and the
+    /// exit status will be `0`. Otherwise, when the error is fatal, the error
     /// is printed to stderr and the exit status will be `1`.
     pub fn exit(&self) -> ! {
         if self.is_fatal() {
@@ -62,16 +60,15 @@ impl fmt::Display for Error {
 impl StdError for Error {
     fn description(&self) -> &str {
         match *self {
-            Error::ConfigParseErr  => "clog: error parsing config file",
-            Error::ConfigFormatErr => "clog: incorrect format for config file",
-            Error::CurrentDirErr   => "clog: cannot get current directory",
-            Error::TomlReadErr     => "clog: cannot read TOML config file",
-            Error::LinkStyleErr    => "clog: unrecognized link-style field",
-            Error::SemVerErr       => "clog: cannot parse SemVer version",
-            Error::CreateFileErr   => "clog: cannot create output file",
-            Error::WriteErr        => "clog: cannot write to output file or stream",
-            Error::UnknownErr      => "clog: unknown fatal error",
-            Error::IoErr           => "clog: fatal i/o error with output file"
+            Error::ConfigParseErr  => "error parsing config file",
+            Error::ConfigFormatErr => "incorrect format for config file",
+            Error::CurrentDirErr   => "cannot get current directory",
+            Error::TomlReadErr     => "cannot read TOML config file",
+            Error::LinkStyleErr    => "unrecognized link-style field",
+            Error::CreateFileErr   => "cannot create output file",
+            Error::WriteErr        => "cannot write to output file or stream",
+            Error::UnknownErr      => "unknown fatal error",
+            Error::IoErr           => "fatal i/o error with output file"
         }
     }
 
