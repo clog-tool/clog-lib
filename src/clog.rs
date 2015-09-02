@@ -782,7 +782,7 @@ impl Clog {
                 .collect()
     }
 
-    fn parse_raw_commit(&self, commit_str: &str) -> Commit {
+    pub fn parse_raw_commit(&self, commit_str: &str) -> Commit {
         let mut lines = commit_str.lines();
 
         let hash = lines.next().unwrap_or("").to_owned();
