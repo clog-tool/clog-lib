@@ -70,7 +70,7 @@ pub struct Clog {
     /// The regex used to get closes issue links
     pub closes_regex: Regex,
     /// The format to output the changelog in (Defaults to Markdown)
-    pub out_format: ChangelogFormat,
+    pub out_format: ChangelogFormat
 }
 
 impl fmt::Debug for Clog {
@@ -150,7 +150,7 @@ impl Clog {
             git_dir: None,
             git_work_tree: None,
             regex: regex!(r"^([^:\(]+?)(?:\(([^:\)]*?)?\))?:(.*)"),
-            closes_regex: regex!(r"(?:Closes|Fixes|Resolves)\s((?:#(\d+)(?:,\s)?)+)"),
+            closes_regex: regex!(r"(?:Closes|Fixes|Resolves)\s((?:#(\d+)(?:,\s)?)+)")
         }
     }
 
@@ -304,7 +304,7 @@ impl Clog {
         let cfg_file = if file.as_ref().is_relative() {
             debugln!("file is relative");
             let cwd = match env::current_dir() {
-                Ok(d)  => d,
+                Ok(d) => d,
                 Err(..) => return Err(Error::CurrentDirErr),
             };
             Path::new(&cwd).join(file.as_ref())
@@ -329,7 +329,7 @@ impl Clog {
         let mut toml_outfile = None;
         let mut toml_infile = None;
         let mut toml_changelog = None;
-        let mut toml_format= None;
+        let mut toml_format = None;
 
         if let Ok(ref mut toml_f) = File::open(cfg_file) {
             debugln!("Found file");
@@ -345,51 +345,52 @@ impl Clog {
 
             let toml_table = match toml.parse() {
                 Some(table) => table,
-                None        => {
+                None => {
                     return Err(Error::ConfigParseErr);
                 }
             };
 
             let clog_table = match toml_table.get("clog") {
                 Some(table) => table,
-                None        => {
+                None => {
                     return Err(Error::ConfigFormatErr);
                 }
             };
 
-            toml_from_latest = clog_table.lookup("from-latest-tag").unwrap_or(&Value::Boolean(false)).as_bool();
+            toml_from_latest =
+                clog_table.lookup("from-latest-tag").unwrap_or(&Value::Boolean(false)).as_bool();
             toml_repo = match clog_table.lookup("repository") {
                 Some(val) => Some(val.as_str().unwrap_or("").to_owned()),
-                None      => Some("".to_owned())
+                None => Some("".to_owned()),
             };
             toml_subtitle = match clog_table.lookup("subtitle") {
                 Some(val) => Some(val.as_str().unwrap_or("").to_owned()),
-                None      => Some("".to_owned())
+                None => Some("".to_owned()),
             };
             toml_link_style = match clog_table.lookup("link-style") {
                 Some(val) => match val.as_str().unwrap_or("github").parse::<LinkStyle>() {
                     Ok(style) => Some(style),
-                    Err(..)  => {
+                    Err(..) => {
                         return Err(Error::LinkStyleErr);
                     }
                 },
-                None      => Some(LinkStyle::Github)
+                None => Some(LinkStyle::Github),
             };
             toml_outfile = match clog_table.lookup("outfile") {
                 Some(val) => Some(val.as_str().unwrap_or("").to_owned()),
-                None      => None
+                None => None,
             };
             toml_infile = match clog_table.lookup("infile") {
                 Some(val) => Some(val.as_str().unwrap_or("").to_owned()),
-                None      => None
+                None => None,
             };
             toml_changelog = match clog_table.lookup("changelog") {
                 Some(val) => Some(val.as_str().unwrap_or("").to_owned()),
-                None      => None
+                None => None,
             };
             toml_format = match clog_table.lookup("output-format") {
                 Some(val) => Some(val.as_str().unwrap_or("").to_owned()),
-                None      => None
+                None => None,
             };
             match toml_table.get("sections") {
                 Some(table) => {
@@ -401,11 +402,11 @@ impl Clog {
                                     self.section_map.insert(sec.to_owned(), alias_vec);
                                 }
                             }
-                        },
-                        None        => ()
+                        }
+                        None => (),
                     }
-                },
-                None        => ()
+                }
+                None => (),
             };
         } else {
             debugln!("File didn't exist");
@@ -438,7 +439,7 @@ impl Clog {
         if let Some(format) = toml_format {
             match format.parse::<ChangelogFormat>() {
                 Ok(val) => self.out_format = val,
-                Err(..)  => return Err(Error::ConfigFormatErr),
+                Err(..) => return Err(Error::ConfigFormatErr),
             }
         }
 
@@ -752,7 +753,7 @@ impl Clog {
     pub fn get_commits(&self) -> Commits {
         let range = match &self.from[..] {
             "" => "HEAD".to_owned(),
-            _  => format!("{}..{}", self.from, self.to)
+            _ => format!("{}..{}", self.from, self.to),
         };
 
         let output = Command::new("git")
@@ -772,7 +773,7 @@ impl Clog {
                 .collect()
     }
 
-    fn parse_raw_commit(&self, commit_str:&str) -> Commit {
+    fn parse_raw_commit(&self, commit_str: &str) -> Commit {
         let mut lines = commit_str.split('\n');
 
         let hash = lines.next().unwrap_or("").to_owned();
@@ -785,8 +786,8 @@ impl Clog {
                     let component = caps.at(2);
                     let subject = caps.at(3);
                     (subject, component, commit_type)
-               },
-               None => (Some(""), Some(""), self.section_for("unk").clone())
+                }
+                None => (Some(""), Some(""), self.section_for("unk").clone()),
             };
         let closes = lines.filter_map(|line| self.closes_regex.captures(line))
                           .map(|caps| caps.at(2).unwrap_or("").to_owned())
@@ -901,7 +902,7 @@ impl Clog {
             format!("--git-dir={}", self.git_dir.clone().unwrap().to_str().unwrap())
         } else {
             // user only supplied a git dir i.e. /home/user/mycode/.git
-            let mut g =  self.git_dir.clone().unwrap();
+            let mut g = self.git_dir.clone().unwrap();
             g.push(".git");
             format!("--git-dir={}", g.to_str().unwrap())
         }
@@ -959,8 +960,8 @@ impl Clog {
                 ChangelogFormat::Markdown => {
                     let mut writer = MarkdownWriter::new(&mut out_buf);
                     self.write_changelog_with(&mut writer)
-                },
-                ChangelogFormat::Json     => {
+                }
+                ChangelogFormat::Json => {
                     let mut writer = JsonWriter::new(&mut out_buf);
                     self.write_changelog_with(&mut writer)
                 }
@@ -1000,8 +1001,8 @@ impl Clog {
                     ChangelogFormat::Markdown => {
                         let mut writer = MarkdownWriter::new(&mut file);
                         try!(self.write_changelog_with(&mut writer));
-                    },
-                    ChangelogFormat::Json     => {
+                    }
+                    ChangelogFormat::Json => {
                         let mut writer = JsonWriter::new(&mut file);
                         try!(self.write_changelog_with(&mut writer));
                     }
@@ -1048,8 +1049,8 @@ impl Clog {
                         ChangelogFormat::Markdown => {
                             let mut writer = MarkdownWriter::new(&mut file);
                             try!(self.write_changelog_with(&mut writer));
-                        },
-                        ChangelogFormat::Json     => {
+                        }
+                        ChangelogFormat::Json => {
                             let mut writer = JsonWriter::new(&mut file);
                             try!(self.write_changelog_with(&mut writer));
                         }
@@ -1071,8 +1072,8 @@ impl Clog {
                     ChangelogFormat::Markdown => {
                         let mut writer = MarkdownWriter::new(&mut out_buf);
                         try!(self.write_changelog_with(&mut writer));
-                    },
-                    ChangelogFormat::Json     => {
+                    }
+                    ChangelogFormat::Json => {
                         let mut writer = JsonWriter::new(&mut out_buf);
                         try!(self.write_changelog_with(&mut writer));
                     }
@@ -1113,7 +1114,7 @@ impl Clog {
     /// });
     /// ```
     pub fn write_changelog_with<W>(&self, writer: &mut W) -> WriterResult
-                                   where W: FormatWriter {
+        where W: FormatWriter {
         debugln!("Writing changelog from writer");
         let sm = SectionMap::from_commits(self.get_commits());
 

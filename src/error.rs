@@ -60,21 +60,21 @@ impl fmt::Display for Error {
 impl StdError for Error {
     fn description(&self) -> &str {
         match *self {
-            Error::ConfigParseErr  => "error parsing config file",
+            Error::ConfigParseErr => "error parsing config file",
             Error::ConfigFormatErr => "incorrect format for config file",
-            Error::CurrentDirErr   => "cannot get current directory",
-            Error::TomlReadErr     => "cannot read TOML config file",
-            Error::LinkStyleErr    => "unrecognized link-style field",
-            Error::CreateFileErr   => "cannot create output file",
-            Error::WriteErr        => "cannot write to output file or stream",
-            Error::UnknownErr      => "unknown fatal error",
-            Error::IoErr           => "fatal i/o error with output file"
+            Error::CurrentDirErr => "cannot get current directory",
+            Error::TomlReadErr => "cannot read TOML config file",
+            Error::LinkStyleErr => "unrecognized link-style field",
+            Error::CreateFileErr => "cannot create output file",
+            Error::WriteErr => "cannot write to output file or stream",
+            Error::UnknownErr => "unknown fatal error",
+            Error::IoErr => "fatal i/o error with output file",
         }
     }
 
     fn cause(&self) -> Option<&StdError> {
         match *self {
-            _ => None
+            _ => None,
         }
     }
 }

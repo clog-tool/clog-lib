@@ -64,7 +64,7 @@ impl<'a> MarkdownWriter<'a> {
     fn write_header(&mut self, options: &Clog) -> io::Result<()> {
         let subtitle = match options.subtitle.len() {
             0 => options.subtitle.to_owned(),
-            _ => format!(" {}", options.subtitle)
+            _ => format!(" {}", options.subtitle),
         };
 
         let version_text = if options.patch_ver {
@@ -82,8 +82,8 @@ impl<'a> MarkdownWriter<'a> {
                     "<a name=\"{}\"></a>\n{} ({})\n\n",
                     options.version, version_text, date
                 )
-            },
-            Err(_)   => {
+            }
+            Err(_) => {
                 write!(
                     self.0,
                     "<a name=\"{}\"></a>\n{} ({})\n\n",
@@ -94,9 +94,14 @@ impl<'a> MarkdownWriter<'a> {
     }
 
     /// Writes a particular section of a changelog 
-    fn write_section(&mut self, options: &Clog, title: &str, section: &BTreeMap<&String, &Vec<Commit>>)
-                            -> WriterResult {
-        if section.len() == 0 { return Ok(()) }
+    fn write_section(&mut self,
+                     options: &Clog,
+                     title: &str,
+                     section: &BTreeMap<&String, &Vec<Commit>>)
+                     -> WriterResult {
+        if section.len() == 0 {
+            return Ok(())
+        }
 
         if let Err(..) = self.0.write(&format!("\n#### {}\n\n", title)[..].as_bytes()) {
             return Err(Error::WriteErr);

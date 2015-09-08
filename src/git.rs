@@ -14,7 +14,7 @@ pub struct Commit {
     /// Any issues this commit breaks
     pub breaks: Vec<String>,
     /// The commit type (or alias)
-    pub commit_type: String 
+    pub commit_type: String
 }
 
 /// A convienience type for multiple commits
