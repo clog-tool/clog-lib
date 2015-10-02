@@ -35,7 +35,7 @@ impl LinkStyle {
                 match *self {
                     LinkStyle::Github => format!("{}/issues/{}", link, issue.as_ref()),
                     LinkStyle::Gitlab => format!("{}/issues/{}", link, issue.as_ref()),
-                    LinkStyle::Stash  => format!("{}", issue.as_ref()) // Stash doesn't support issue links
+                    LinkStyle::Stash => format!("{}", issue.as_ref()),
                 }
             }
         }
@@ -58,7 +58,7 @@ impl LinkStyle {
                 match *self {
                     LinkStyle::Github => format!("{}/commit/{}", link, hash.as_ref()),
                     LinkStyle::Gitlab => format!("{}/commit/{}", link, hash.as_ref()),
-                    LinkStyle::Stash  => format!("{}/commits/{}", link, hash.as_ref())
+                    LinkStyle::Stash => format!("{}/commits/{}", link, hash.as_ref()),
                 }
             }
         }

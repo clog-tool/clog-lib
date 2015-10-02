@@ -84,8 +84,8 @@ impl<'a> JsonWriter<'a> {
                     "\"date\":\"{}\"}},",
                     date
                 )
-            },
-            Err(_)   => {
+            }
+            Err(_) => {
                 write!(
                     self.0,
                     "\"date\":null}},",
@@ -95,8 +95,10 @@ impl<'a> JsonWriter<'a> {
     }
 
     /// Writes a particular section of a changelog
-    fn write_section(&mut self, options: &Clog, section: &BTreeMap<&String, &Vec<Commit>>)
-                            -> WriterResult {
+    fn write_section(&mut self,
+                     options: &Clog,
+                     section: &BTreeMap<&String, &Vec<Commit>>)
+                     -> WriterResult {
         if section.len() == 0 {
             write!(self.0, "\"commits\":null").unwrap();
             return Ok(())
@@ -173,14 +175,14 @@ impl<'a> FormatWriter for JsonWriter<'a> {
         debugln!("Writing JSON changelog");
         write!(self.0, "{{").unwrap();
         if let Some(..) = self.write_header(options).err() {
-        debugln!("Error writing JSON header");
+            debugln!("Error writing JSON header");
             return Err(Error::WriteErr);
         }
 
         write!(self.0, "\"sections\":").unwrap();
         let mut s_it = sm.sections.iter().peekable();
         if s_it.peek().is_some() {
-        debugln!("There are sections to write");
+            debugln!("There are sections to write");
             write!(self.0, "[").unwrap();
             while let Some((sec, compmap)) = s_it.next() {
                 debugln!("Writing section: {}", &*sec);
