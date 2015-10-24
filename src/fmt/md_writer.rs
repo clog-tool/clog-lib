@@ -17,7 +17,7 @@ use sectionmap::SectionMap;
 /// # use std::fs::File;
 /// # use clog::{SectionMap, Clog};
 /// # use clog::fmt::MarkdownWriter;
-/// let clog = Clog::new().unwrap_or_else(|e| { 
+/// let clog = Clog::new().unwrap_or_else(|e| {
 ///     e.exit();
 /// });
 ///
@@ -30,9 +30,9 @@ use sectionmap::SectionMap;
 ///
 /// // Create the MarkdownWriter
 /// let mut writer = MarkdownWriter::new(&mut file);
-/// 
+///
 /// // Use the MarkdownWriter to write the changelog
-/// clog.write_changelog_with(&mut writer).unwrap_or_else(|e| { 
+/// clog.write_changelog_with(&mut writer).unwrap_or_else(|e| {
 ///     e.exit();
 /// });
 /// ```
@@ -48,7 +48,7 @@ impl<'a> MarkdownWriter<'a> {
     /// # use std::io::{stdout, BufWriter};
     /// # use clog::Clog;
     /// # use clog::fmt::MarkdownWriter;
-    /// let clog = Clog::new().unwrap_or_else(|e| { 
+    /// let clog = Clog::new().unwrap_or_else(|e| {
     ///     e.exit();
     /// });
     ///
@@ -93,7 +93,7 @@ impl<'a> MarkdownWriter<'a> {
         }
     }
 
-    /// Writes a particular section of a changelog 
+    /// Writes a particular section of a changelog
     fn write_section(&mut self,
                      options: &Clog,
                      title: &str,
@@ -138,10 +138,8 @@ impl<'a> MarkdownWriter<'a> {
                                                     .map(|s| format!("[#{}]({})",
                                                         &*s,
                                                         options.link_style.issue_link(&*s, &options.repo)))
-                                                    // FIXME: Connect should be
-                                                    // used on the Iterator
                                                     .collect::<Vec<String>>()
-                                                    .connect(", ");
+                                                    .join(", ");
 
                     if let Err(..) = write!(self.0 , ", closes {}", closes_string) {
                         return Err(Error::WriteErr);
