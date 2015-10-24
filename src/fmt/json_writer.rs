@@ -124,7 +124,7 @@ impl<'a> JsonWriter<'a> {
                            .commit_link(&*entry.hash, &*options.repo)
                 ).unwrap();
 
-                if entry.closes.len() > 0 {
+                if !entry.closes.is_empty() {
                     write!(self.0, "[").unwrap();
                     let mut c_it = entry.closes.iter().peekable();
                     while let Some(issue) = c_it.next() {
@@ -141,8 +141,30 @@ impl<'a> JsonWriter<'a> {
                         }
                     }
                     write!(self.0,
+                        "],").unwrap();
+                }  else {
+                    write!(self.0, "null,").unwrap();
+                }
+                write!(self.0 , "\"breaks\":").unwrap();
+                if !entry.breaks.is_empty() {
+                    write!(self.0, "[").unwrap();
+                    let mut c_it = entry.closes.iter().peekable();
+                    while let Some(issue) = c_it.next() {
+                        write!(self.0,
+                            "{{\"issue\":{},\"issue_link\":{:?}}}",
+                            issue,
+                            options.link_style.issue_link(issue, &options.repo)
+                        ).unwrap();
+                        if c_it.peek().is_some() {
+                            debugln!("There are more breaks commits, adding comma");
+                            write!(self.0, ",").unwrap();
+                        } else {
+                            debugln!("There are no more breaks commits, no comma required");
+                        }
+                    }
+                    write!(self.0,
                         "]}}").unwrap();
-                } else {
+                }  else {
                     write!(self.0, "null}}").unwrap();
                 }
                 if e_it.peek().is_some() {

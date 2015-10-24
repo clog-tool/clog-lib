@@ -21,7 +21,7 @@ impl SectionMap {
     /// # use std::fs::File;
     /// # use clog::{Clog, SectionMap};
     /// # use clog::fmt::{FormatWriter, MarkdownWriter};
-    /// let clog = Clog::new().unwrap_or_else(|e| { 
+    /// let clog = Clog::new().unwrap_or_else(|e| {
     ///     e.exit();
     /// });
     ///
@@ -34,9 +34,9 @@ impl SectionMap {
     ///
     /// // Create the MarkdownWriter
     /// let mut writer = MarkdownWriter::new(&mut file);
-    /// 
+    ///
     /// // Use the MarkdownWriter to write the changelog
-    /// clog.write_changelog_with(&mut writer).unwrap_or_else(|e| { 
+    /// clog.write_changelog_with(&mut writer).unwrap_or_else(|e| {
     ///     e.exit();
     /// });
     /// ```
@@ -45,11 +45,16 @@ impl SectionMap {
             sections: HashMap::new()
         };
 
-        commits.into_iter().map(|entry| {
+        for entry in commits {
+            if !entry.breaks.is_empty() {
+                let comp_map = sm.sections.entry("Breaking Changes".to_owned()).or_insert(BTreeMap::new());
+                let sec_map = comp_map.entry(entry.component.clone()).or_insert(vec![]);
+                sec_map.push(entry.clone());
+            }
             let comp_map = sm.sections.entry(entry.commit_type.clone()).or_insert(BTreeMap::new());
             let sec_map = comp_map.entry(entry.component.clone()).or_insert(vec![]);
             sec_map.push(entry);
-        }).collect::<Vec<_>>();
+        }
 
         sm
     }

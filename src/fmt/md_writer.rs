@@ -133,7 +133,7 @@ impl<'a> MarkdownWriter<'a> {
                     return Err(Error::WriteErr);
                 }
 
-                if entry.closes.len() > 0 {
+                if !entry.closes.is_empty() {
                     let closes_string = entry.closes.iter()
                                                     .map(|s| format!("[#{}]({})",
                                                         &*s,
@@ -143,6 +143,21 @@ impl<'a> MarkdownWriter<'a> {
 
                     if let Err(..) = write!(self.0 , ", closes {}", closes_string) {
                         return Err(Error::WriteErr);
+                    }
+                }
+                if !entry.breaks.is_empty() {
+                    let breaks_string = entry.breaks.iter()
+                                                    .map(|s| format!("[#{}]({})",
+                                                        &*s,
+                                                        options.link_style.issue_link(&*s, &options.repo)))
+                                                    .collect::<Vec<String>>()
+                                                    .join(", ");
+
+                    // 5 = "[#]()" i.e. a commit message that only said "BREAKING"
+                    if breaks_string.len() != 5 {
+                        if let Err(..) = write!(self.0 , ", breaks {}", breaks_string) {
+                            return Err(Error::WriteErr);
+                        }
                     }
                 }
 

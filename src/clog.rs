@@ -69,6 +69,9 @@ pub struct Clog {
     pub regex: Regex,
     /// The regex used to get closes issue links
     pub closes_regex: Regex,
+    /// The regex used to get closes issue links
+    pub breaks_regex: Regex,
+    pub breaking_regex: Regex,
     /// The format to output the changelog in (Defaults to Markdown)
     pub out_format: ChangelogFormat
 }
@@ -92,6 +95,8 @@ impl fmt::Debug for Clog {
             git_work_tree: {:?}
             regex: {:?}
             closes_regex: {:?}
+            breaks_regex: {:?}
+            breaking_regex: {:?}
             out_format: {:?}
         }}",
         self.grep,
@@ -110,6 +115,8 @@ impl fmt::Debug for Clog {
         self.git_work_tree,
         self.regex,
         self.closes_regex,
+        self.breaks_regex,
+        self.breaking_regex,
         self.out_format,
         )
     }
@@ -124,7 +131,7 @@ impl Clog {
         sections.insert("Bug Fixes".to_owned(), vec!["fx".to_owned(), "fix".to_owned()]);
         sections.insert("Performance".to_owned(), vec!["perf".to_owned()]);
         sections.insert("Unknown".to_owned(), vec!["unk".to_owned()]);
-        sections.insert("Breaks".to_owned(), vec![]);
+        sections.insert("Breaking Changes".to_owned(), vec!["breaks".to_owned()]);
 
         Clog {
             grep: format!("{}BREAKING'",
@@ -150,7 +157,9 @@ impl Clog {
             git_dir: None,
             git_work_tree: None,
             regex: regex!(r"^([^:\(]+?)(?:\(([^:\)]*?)?\))?:(.*)"),
-            closes_regex: regex!(r"(?:Closes|Fixes|Resolves)\s((?:#(\d+)(?:,\s)?)+)")
+            closes_regex: regex!(r"(?:Closes|Fixes|Resolves)\s((?:#(\d+)(?:,\s)?)+)"),
+            breaks_regex: regex!(r"(?:Breaks|Broke)\s((?:#(\d+)(?:,\s)?)+)"),
+            breaking_regex: regex!(r"(?i:breaking)")
         }
     }
 
@@ -774,7 +783,7 @@ impl Clog {
     }
 
     fn parse_raw_commit(&self, commit_str: &str) -> Commit {
-        let mut lines = commit_str.split('\n');
+        let mut lines = commit_str.lines();
 
         let hash = lines.next().unwrap_or("").to_owned();
 
@@ -789,16 +798,29 @@ impl Clog {
                 }
                 None => (Some(""), Some(""), self.section_for("unk").clone()),
             };
-        let closes = lines.filter_map(|line| self.closes_regex.captures(line))
-                          .map(|caps| caps.at(2).unwrap_or("").to_owned())
-                          .collect();
+        let mut closes = vec![];
+        let mut breaks = vec![];
+        for line in lines {
+            if let Some(caps) = self.closes_regex.captures(line) {
+                if let Some(cap) = caps.at(2) {
+                    closes.push(cap.to_owned());
+                }
+            }
+            if let Some(caps) = self.breaks_regex.captures(line) {
+                if let Some(cap) = caps.at(2) {
+                    breaks.push(cap.to_owned());
+                }
+            } else if self.breaking_regex.captures(line).is_some() {
+                breaks.push("".to_owned());
+            }
+        }
 
         Commit {
             hash: hash,
             subject: subject.unwrap().to_owned(),
             component: component.unwrap_or("").to_owned(),
             closes: closes,
-            breaks: vec![],
+            breaks: breaks,
             commit_type: commit_type
         }
     }
