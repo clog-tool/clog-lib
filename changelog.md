@@ -1,3 +1,13 @@
+<a name="0.9.0"></a>
+## 0.9.0 (2015-10-25)
+
+
+#### Features
+
+* **Sections**  adds breaking changes ([66dd7adc](https://github.com/clog-tool/clog-lib/commit/66dd7adc81b349d5694f4c9f68cf87532637005b), closes [#5](https://github.com/clog-tool/clog-lib/issues/5))
+
+
+
 <a name="0.8.2"></a>
 ### 0.8.2 (2015-07-02)
 
