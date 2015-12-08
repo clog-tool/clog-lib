@@ -156,7 +156,7 @@ impl Clog {
             out_format: ChangelogFormat::Markdown,
             git_dir: None,
             git_work_tree: None,
-            regex: regex!(r"^([^:\(]+?)(?:\(([^:\)]*?)?\))?:(.*)"),
+            regex: regex!(r"^([^:\(]+?)(?:\(([^\)]*?)?\))?:(.*)"),
             closes_regex: regex!(r"(?:Closes|Fixes|Resolves)\s((?:#(\d+)(?:,\s)?)+)"),
             breaks_regex: regex!(r"(?:Breaks|Broke)\s((?:#(\d+)(?:,\s)?)+)"),
             breaking_regex: regex!(r"(?i:breaking)")
