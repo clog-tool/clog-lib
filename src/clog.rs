@@ -782,6 +782,7 @@ impl Clog {
                 .collect()
     }
 
+    #[doc(hidden)]
     pub fn parse_raw_commit(&self, commit_str: &str) -> Commit {
         let mut lines = commit_str.lines();
 
