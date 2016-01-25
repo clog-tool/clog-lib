@@ -12,7 +12,8 @@ clog_enum!{
     pub enum LinkStyle {
         Github,
         Gitlab,
-        Stash
+        Stash,
+        Cgit
     }
 }
 
@@ -36,6 +37,8 @@ impl LinkStyle {
                     LinkStyle::Github => format!("{}/issues/{}", link, issue.as_ref()),
                     LinkStyle::Gitlab => format!("{}/issues/{}", link, issue.as_ref()),
                     LinkStyle::Stash => format!("{}", issue.as_ref()),
+                    // cgit does not support issues
+                    LinkStyle::Cgit => format!("{}", issue.as_ref()),
                 }
             }
         }
@@ -59,6 +62,7 @@ impl LinkStyle {
                     LinkStyle::Github => format!("{}/commit/{}", link, hash.as_ref()),
                     LinkStyle::Gitlab => format!("{}/commit/{}", link, hash.as_ref()),
                     LinkStyle::Stash => format!("{}/commits/{}", link, hash.as_ref()),
+                    LinkStyle::Cgit => format!("{}/commit/?id={}", link, hash.as_ref()),
                 }
             }
         }
