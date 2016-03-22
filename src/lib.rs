@@ -1,8 +1,3 @@
-// Until regex_macros compiles on nightly, we comment this out
-//
-// #![cfg_attr(feature = "unstable", feature(plugin))]
-// #![cfg_attr(feature = "unstable", plugin(regex_macros))]
-
 // DOCS
 
 extern crate regex;
