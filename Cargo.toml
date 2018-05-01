@@ -10,6 +10,7 @@ description = "A conventional changelog for the rest of us"
 exclude = ["docs/*"]
 
 [dependencies]
+indexmap = "1.0.1"
 regex = "0.1.41"
 toml = "0.1.23"
 time = "0.1.33"

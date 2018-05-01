@@ -7,6 +7,7 @@ use std::io::{stdout, BufWriter, Write, Read};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
+use indexmap::IndexMap;
 use regex::Regex;
 use toml::{Value, Parser};
 
@@ -59,7 +60,7 @@ pub struct Clog {
     pub outfile: Option<String>,
     /// Maps out the sections and aliases used to trigger those sections. The keys are the section
     /// name, and the values are an array of aliases.
-    pub section_map: HashMap<String, Vec<String>>,
+    pub section_map: IndexMap<String, Vec<String>>,
     /// The git dir with all the meta-data (Typically the `.git` sub-directory of the project)
     pub git_dir: Option<PathBuf>,
     /// The working directory of the git project (typically the project directory, or parent of the
@@ -126,7 +127,7 @@ impl fmt::Debug for Clog {
 impl Clog {
     fn _new() -> Clog {
         debugln!("Creating default clog with _new()");
-        let mut sections = HashMap::new();
+        let mut sections = IndexMap::new();
         sections.insert("Features".to_owned(), vec!["ft".to_owned(), "feat".to_owned()]);
         sections.insert("Bug Fixes".to_owned(), vec!["fx".to_owned(), "fix".to_owned()]);
         sections.insert("Performance".to_owned(), vec!["perf".to_owned()]);

@@ -202,7 +202,10 @@ impl<'a> FormatWriter for JsonWriter<'a> {
         }
 
         write!(self.0, "\"sections\":").unwrap();
-        let mut s_it = sm.sections.iter().peekable();
+        let mut s_it = options.section_map
+            .keys()
+            .filter_map(|sec| sm.sections.get(sec).map(|compmap| (sec, compmap)))
+            .peekable();
         if s_it.peek().is_some() {
             debugln!("There are sections to write");
             write!(self.0, "[").unwrap();

@@ -1,5 +1,6 @@
 // DOCS
 
+extern crate indexmap;
 extern crate regex;
 extern crate toml;
 extern crate time;
