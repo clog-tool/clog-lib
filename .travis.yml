@@ -5,9 +5,9 @@ rust:
 - beta
 - stable
 before_script:
-- git clone --depth 1 https://github.com/kbknapp/travis-cargo
-- ln -s ./travis-cargo/travis-cargo.py tc
+- pip install 'travis-cargo<0.2' --user
+- export PATH=$HOME/.local/bin:$PATH
 script:
 - |
-  ./tc cargo build &&
-  ./tc cargo test
+  travis-cargo build &&
+  travis-cargo test
