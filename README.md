@@ -134,6 +134,22 @@ Now if you make a commit message such as `mysec(Component): some message` or `ms
 
 *NOTE:* Sections with spaces are suppported, such as `"My Special Section" = ["ms", "mysec"]`
 
+### Component Aliases
+
+By default, `clog` will use the exact component string given in your
+commit message (i.e. `feat(comp): message` will be displayed as as the
+"comp" component in the changelog output.  If you want to display a
+longer string for a component in your changelog, you can define aliases
+in a `[components]` table in your `.clog.toml` configuration file:
+
+```toml
+[components]
+MyLongComponentName = ["long", "comp"]
+```
+
+With this configuration, `feat(comp): message` will be displayed as the
+"MyLongComponentName" component in the changelog output.
+
 ## Companion Projects
 
 - [Commitizen](http://commitizen.github.io/cz-cli/) - A command line tool that helps you writing better commit messages.
