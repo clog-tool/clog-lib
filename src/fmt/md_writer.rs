@@ -183,7 +183,12 @@ impl<'a> FormatWriter for MarkdownWriter<'a> {
         if let Some(..) = self.write_header(options).err() {
             return Err(Error::WriteErr);
         }
-        for (sec, secmap) in sm.sections.iter() {
+
+        // Get the section names ordered from `options.section_map`
+        let s_it = options.section_map
+            .keys()
+            .filter_map(|sec| sm.sections.get(sec).map(|secmap| (sec, secmap)));
+        for (sec, secmap) in s_it {
             try!(self.write_section(options, &sec[..], &secmap.iter().collect::<BTreeMap<_,_>>()));
         }
 

@@ -7,6 +7,7 @@ use std::io::{stdout, BufWriter, Write, Read};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
+use indexmap::IndexMap;
 use regex::Regex;
 use toml::{Value, Parser};
 
@@ -59,7 +60,10 @@ pub struct Clog {
     pub outfile: Option<String>,
     /// Maps out the sections and aliases used to trigger those sections. The keys are the section
     /// name, and the values are an array of aliases.
-    pub section_map: HashMap<String, Vec<String>>,
+    pub section_map: IndexMap<String, Vec<String>>,
+    /// Maps out the components and aliases used to trigger those components. The keys are the
+    /// component name, and the values are an array of aliases.
+    pub component_map: HashMap<String, Vec<String>>,
     /// The git dir with all the meta-data (Typically the `.git` sub-directory of the project)
     pub git_dir: Option<PathBuf>,
     /// The working directory of the git project (typically the project directory, or parent of the
@@ -91,6 +95,7 @@ impl fmt::Debug for Clog {
             infile: {:?}
             outfile: {:?}
             section_map: {:?}
+            component_map: {:?}
             git_dir: {:?}
             git_work_tree: {:?}
             regex: {:?}
@@ -111,6 +116,7 @@ impl fmt::Debug for Clog {
         self.infile,
         self.outfile,
         self.section_map,
+        self.component_map,
         self.git_dir,
         self.git_work_tree,
         self.regex,
@@ -126,7 +132,7 @@ impl fmt::Debug for Clog {
 impl Clog {
     fn _new() -> Clog {
         debugln!("Creating default clog with _new()");
-        let mut sections = HashMap::new();
+        let mut sections = IndexMap::new();
         sections.insert("Features".to_owned(), vec!["ft".to_owned(), "feat".to_owned()]);
         sections.insert("Bug Fixes".to_owned(), vec!["fx".to_owned(), "fix".to_owned()]);
         sections.insert("Performance".to_owned(), vec!["perf".to_owned()]);
@@ -153,6 +159,7 @@ impl Clog {
             infile: None,
             outfile: None,
             section_map: sections,
+            component_map: HashMap::new(),
             out_format: ChangelogFormat::Markdown,
             git_dir: None,
             git_work_tree: None,
@@ -409,6 +416,24 @@ impl Clog {
                                 if let Some(vec) = val.as_slice() {
                                     let alias_vec = vec.iter().map(|v| v.as_str().unwrap_or("").to_owned()).collect::<Vec<_>>();
                                     self.section_map.insert(sec.to_owned(), alias_vec);
+                                }
+                            }
+                        }
+                        None => (),
+                    }
+                }
+                None => (),
+            };
+            match toml_table.get("components") {
+                Some(table) => {
+                    match table.as_table() {
+                        Some(table) => {
+                            for (comp, val) in table.iter() {
+                                if let Some(vec) = val.as_slice() {
+                                    let alias_vec = vec.iter()
+                                        .map(|v| v.as_str().unwrap_or("").to_owned())
+                                        .collect::<Vec<_>>();
+                                    self.component_map.insert(comp.to_owned(), alias_vec);
                                 }
                             }
                         }
@@ -793,11 +818,16 @@ impl Clog {
             match lines.next().and_then(|s| self.regex.captures(s)) {
                 Some(caps) => {
                     let commit_type = self.section_for(caps.at(1).unwrap_or("")).to_owned();
-                    let component = caps.at(2);
+                    let component = caps.at(2).map(|component|
+                            match self.component_for(component) {
+                                    Some(alias) => alias.clone(),
+                                    None => component.to_owned(),
+                                }
+                                .to_owned());
                     let subject = caps.at(3);
                     (subject, component, commit_type)
                 }
-                None => (Some(""), Some(""), self.section_for("unk").clone()),
+                None => (Some(""), Some("".to_owned()), self.section_for("unk").clone()),
             };
         let mut closes = vec![];
         let mut breaks = vec![];
@@ -819,7 +849,7 @@ impl Clog {
         Commit {
             hash: hash,
             subject: subject.unwrap().to_owned(),
-            component: component.unwrap_or("").to_owned(),
+            component: component.unwrap_or("".to_string()).to_owned(),
             closes: closes,
             breaks: breaks,
             commit_type: commit_type
@@ -953,6 +983,27 @@ impl Clog {
                                                    .filter(|&k| k == "Unknown")
                                                    .next()
                                                    .unwrap())
+    }
+
+    /// Retrieves the full component name for a given alias (if one is defined)
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// # use clog::Clog;
+    /// let mut clog = Clog::new().unwrap_or_else(|e| {
+    ///     e.exit();
+    /// });
+    ///
+    /// let component = clog.component_for("will_be_none");
+    /// assert_eq!(None, component);
+    /// ```
+    pub fn component_for(&self, alias: &str) -> Option<&String> {
+        self.component_map
+            .iter()
+            .filter(|&(_, v)| v.iter().any(|c| c == alias))
+            .map(|(k, _)| k)
+            .next()
     }
 
     /// Writes the changelog using whatever options have been specified thus far.
