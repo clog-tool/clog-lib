@@ -22,7 +22,7 @@ pub enum Error {
     /// Generic catch all I/O related error
     IoErr,
     /// Unknown, but fatal error (a catch all)
-    UnknownErr
+    UnknownErr,
 }
 
 // Shamelessly taken and adopted from https://github.com/BurntSushi :)
@@ -51,9 +51,7 @@ impl Error {
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match *self {
-            _ => write!(f, "{}", self.description()),
-        }
+        write!(f, "{}", self.description())
     }
 }
 
@@ -73,8 +71,6 @@ impl StdError for Error {
     }
 
     fn cause(&self) -> Option<&dyn StdError> {
-        match *self {
-            _ => None,
-        }
+        None
     }
 }
