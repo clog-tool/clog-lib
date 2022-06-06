@@ -825,13 +825,12 @@ impl Clog {
             match lines.next().and_then(|s| self.regex.captures(s)) {
                 Some(caps) => {
                     let commit_type = self.section_for(caps.at(1).unwrap_or("")).to_owned();
-                    let component = caps.at(2).map(|component| {
-                        match self.component_for(component) {
-                            Some(alias) => alias.clone(),
-                            None => component.to_owned(),
-                        }
-                        .to_owned()
-                    });
+                    let component =
+                        caps.at(2)
+                            .map(|component| match self.component_for(component) {
+                                Some(alias) => alias.clone(),
+                                None => component.to_owned(),
+                            });
                     let subject = caps.at(3);
                     (subject, component, commit_type)
                 }
@@ -861,7 +860,7 @@ impl Clog {
         Commit {
             hash,
             subject: subject.unwrap().to_owned(),
-            component: component.unwrap_or("".to_string()).to_owned(),
+            component: component.unwrap_or_default(),
             closes,
             breaks,
             commit_type,
