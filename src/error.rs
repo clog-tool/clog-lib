@@ -22,7 +22,7 @@ pub enum Error {
     /// Generic catch all I/O related error
     IoErr,
     /// Unknown, but fatal error (a catch all)
-    UnknownErr
+    UnknownErr,
 }
 
 // Shamelessly taken and adopted from https://github.com/BurntSushi :)
@@ -51,15 +51,7 @@ impl Error {
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match *self {
-            _ => write!(f, "{}", self.description()),
-        }
-    }
-}
-
-impl StdError for Error {
-    fn description(&self) -> &str {
-        match *self {
+        f.pad(match *self {
             Error::ConfigParseErr => "error parsing config file",
             Error::ConfigFormatErr => "incorrect format for config file",
             Error::CurrentDirErr => "cannot get current directory",
@@ -69,12 +61,12 @@ impl StdError for Error {
             Error::WriteErr => "cannot write to output file or stream",
             Error::UnknownErr => "unknown fatal error",
             Error::IoErr => "fatal i/o error with output file",
-        }
+        })
     }
+}
 
-    fn cause(&self) -> Option<&StdError> {
-        match *self {
-            _ => None,
-        }
+impl StdError for Error {
+    fn cause(&self) -> Option<&dyn StdError> {
+        None
     }
 }

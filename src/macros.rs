@@ -31,14 +31,14 @@ macro_rules! debug {
 
 #[cfg(not(feature = "debug"))]
 macro_rules! debugln {
-    ($fmt:expr) => ();
-    ($fmt:expr, $($arg:tt)*) => ();
+    ($fmt:expr) => {};
+    ($fmt:expr, $($arg:tt)*) => {};
 }
 
 #[cfg(not(feature = "debug"))]
 macro_rules! debug {
-    ($fmt:expr) => ();
-    ($fmt:expr, $($arg:tt)*) => ();
+    ($fmt:expr) => {};
+    ($fmt:expr, $($arg:tt)*) => {};
 }
 
 /// Convenience macro taken from https://github.com/kbknapp/clap-rs to generate more complete enums
@@ -65,7 +65,8 @@ macro_rules! debug {
 /// }
 /// ```
 macro_rules! clog_enum {
-    (enum $e:ident { $($v:ident),+ } ) => {
+    ($(#[$meta:meta])* enum $e:ident { $($v:ident),+ } ) => {
+        $(#[$meta])*
         enum $e {
             $($v),+
         }
@@ -74,7 +75,6 @@ macro_rules! clog_enum {
             type Err = String;
 
             fn from_str(s: &str) -> Result<Self,Self::Err> {
-                use ::std::ascii::AsciiExt;
                 match s {
                     $(stringify!($v) |
                     _ if s.eq_ignore_ascii_case(stringify!($v)) => Ok($e::$v),)+
@@ -108,7 +108,8 @@ macro_rules! clog_enum {
             }
         }
     };
-    (pub enum $e:ident { $($v:ident),+ } ) => {
+    ($(#[$meta:meta])* pub enum $e:ident { $($v:ident),+ } ) => {
+        $(#[$meta])*
         pub enum $e {
             $($v),+
         }
@@ -117,95 +118,6 @@ macro_rules! clog_enum {
             type Err = String;
 
             fn from_str(s: &str) -> Result<Self,Self::Err> {
-                use ::std::ascii::AsciiExt;
-                match s {
-                    $(stringify!($v) |
-                    _ if s.eq_ignore_ascii_case(stringify!($v)) => Ok($e::$v),)+
-                    _                => Err({
-                                            let v = vec![
-                                                $(stringify!($v),)+
-                                            ];
-                                            format!("valid values:{}",
-                                                v.iter().fold(String::new(), |a, i| {
-                                                    a + &format!(" {}", i)[..]
-                                                }))
-                                        })
-                }
-            }
-        }
-
-        impl ::std::fmt::Display for $e {
-            fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
-                match *self {
-                    $($e::$v => write!(f, stringify!($v)),)+
-                }
-            }
-        }
-
-        impl $e {
-            #[allow(dead_code)]
-            pub fn variants() -> Vec<&'static str> {
-                vec![
-                    $(stringify!($v),)+
-                ]
-            }
-        }
-    };
-    (#[derive($($d:ident),+)] enum $e:ident { $($v:ident),+ } ) => {
-        #[derive($($d,)+)]
-        enum $e {
-            $($v),+
-        }
-
-        impl ::std::str::FromStr for $e {
-            type Err = String;
-
-            fn from_str(s: &str) -> Result<Self,Self::Err> {
-                use ::std::ascii::AsciiExt;
-                match s {
-                    $(stringify!($v) |
-                    _ if s.eq_ignore_ascii_case(stringify!($v)) => Ok($e::$v),)+
-                    _                => Err({
-                                            let v = vec![
-                                                $(stringify!($v),)+
-                                            ];
-                                            format!("valid values:{}",
-                                                v.iter().fold(String::new(), |a, i| {
-                                                    a + &format!(" {}", i)[..]
-                                                }))
-                                        })
-                }
-            }
-        }
-
-        impl ::std::fmt::Display for $e {
-            fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
-                match *self {
-                    $($e::$v => write!(f, stringify!($v)),)+
-                }
-            }
-        }
-
-        impl $e {
-            #[allow(dead_code)]
-            pub fn variants() -> Vec<&'static str> {
-                vec![
-                    $(stringify!($v),)+
-                ]
-            }
-        }
-    };
-    (#[derive($($d:ident),+)] pub enum $e:ident { $($v:ident),+ } ) => {
-        #[derive($($d,)+)]
-        pub enum $e {
-            $($v),+
-        }
-
-        impl ::std::str::FromStr for $e {
-            type Err = String;
-
-            fn from_str(s: &str) -> Result<Self,Self::Err> {
-                use ::std::ascii::AsciiExt;
                 match s {
                     $(stringify!($v) |
                     _ if s.eq_ignore_ascii_case(stringify!($v)) => Ok($e::$v),)+

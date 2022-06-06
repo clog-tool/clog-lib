@@ -1,13 +1,13 @@
-/// Determines the hyperlink style used in commit and issue links. Defaults to `LinksStyle::Github`
-///
-/// # Example
-///
-/// ```no_run
-/// # use clog::{LinkStyle, Clog};
-/// let mut clog = Clog::new().unwrap();
-/// clog.link_style(LinkStyle::Stash);
-/// ```
-clog_enum!{
+clog_enum! {
+    /// Determines the hyperlink style used in commit and issue links. Defaults to `LinksStyle::Github`
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// # use clog::{LinkStyle, Clog};
+    /// let mut clog = Clog::new().unwrap();
+    /// clog.link_style(LinkStyle::Stash);
+    /// ```
     #[derive(Debug)]
     pub enum LinkStyle {
         Github,
@@ -31,14 +31,14 @@ impl LinkStyle {
     /// ```
     pub fn issue_link<S: AsRef<str>>(&self, issue: S, repo: S) -> String {
         match repo.as_ref() {
-            "" => format!("{}", issue.as_ref()),
+            "" => issue.as_ref().to_owned(),
             link => {
                 match *self {
                     LinkStyle::Github => format!("{}/issues/{}", link, issue.as_ref()),
                     LinkStyle::Gitlab => format!("{}/issues/{}", link, issue.as_ref()),
-                    LinkStyle::Stash => format!("{}", issue.as_ref()),
+                    LinkStyle::Stash => issue.as_ref().to_owned(),
                     // cgit does not support issues
-                    LinkStyle::Cgit => format!("{}", issue.as_ref()),
+                    LinkStyle::Cgit => issue.as_ref().to_owned(),
                 }
             }
         }
@@ -56,15 +56,13 @@ impl LinkStyle {
     /// ```
     pub fn commit_link<S: AsRef<str>>(&self, hash: S, repo: S) -> String {
         match repo.as_ref() {
-            "" => format!("{}", &hash.as_ref()[0..8]),
-            link => {
-                match *self {
-                    LinkStyle::Github => format!("{}/commit/{}", link, hash.as_ref()),
-                    LinkStyle::Gitlab => format!("{}/commit/{}", link, hash.as_ref()),
-                    LinkStyle::Stash => format!("{}/commits/{}", link, hash.as_ref()),
-                    LinkStyle::Cgit => format!("{}/commit/?id={}", link, hash.as_ref()),
-                }
-            }
+            "" => hash.as_ref()[0..8].to_string(),
+            link => match *self {
+                LinkStyle::Github => format!("{}/commit/{}", link, hash.as_ref()),
+                LinkStyle::Gitlab => format!("{}/commit/{}", link, hash.as_ref()),
+                LinkStyle::Stash => format!("{}/commits/{}", link, hash.as_ref()),
+                LinkStyle::Cgit => format!("{}/commit/?id={}", link, hash.as_ref()),
+            },
         }
     }
 }

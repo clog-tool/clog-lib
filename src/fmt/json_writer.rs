@@ -4,11 +4,10 @@ use std::io;
 use time;
 
 use clog::Clog;
-use git::Commit;
 use error::Error;
 use fmt::{FormatWriter, WriterResult};
+use git::Commit;
 use sectionmap::SectionMap;
-
 
 /// Wraps a `std::io::Write` object to write `clog` output in a JSON format
 ///
@@ -37,8 +36,7 @@ use sectionmap::SectionMap;
 ///     e.exit();
 /// });
 /// ```
-pub struct JsonWriter<'a>(&'a mut io::Write);
-
+pub struct JsonWriter<'a>(&'a mut dyn io::Write);
 
 impl<'a> JsonWriter<'a> {
     /// Creates a new instance of the `JsonWriter` struct using a `std::io::Write` object.
@@ -66,42 +64,38 @@ impl<'a> JsonWriter<'a> {
 impl<'a> JsonWriter<'a> {
     /// Writes the initial header inforamtion for a release
     fn write_header(&mut self, options: &Clog) -> io::Result<()> {
-        try!(write!(self.0, "\"header\":{{\"version\":{:?},\"patch_version\":{:?},\"subtitle\":{},",
+        write!(
+            self.0,
+            "\"header\":{{\"version\":{:?},\"patch_version\":{:?},\"subtitle\":{},",
             options.version,
             options.patch_ver,
             match options.subtitle.len() {
                 0 => "null".to_owned(),
-                _ => format!("{:?}", &*options.subtitle)
+                _ => format!("{:?}", &*options.subtitle),
             }
-        ));
+        )?;
 
         let date = time::now_utc();
 
         match date.strftime("%Y-%m-%d") {
             Ok(date) => {
-                write!(
-                    self.0,
-                    "\"date\":\"{}\"}},",
-                    date
-                )
+                write!(self.0, "\"date\":\"{}\"}},", date)
             }
             Err(_) => {
-                write!(
-                    self.0,
-                    "\"date\":null}},",
-                )
+                write!(self.0, "\"date\":null}},",)
             }
         }
     }
 
     /// Writes a particular section of a changelog
-    fn write_section(&mut self,
-                     options: &Clog,
-                     section: &BTreeMap<&String, &Vec<Commit>>)
-                     -> WriterResult {
-        if section.len() == 0 {
+    fn write_section(
+        &mut self,
+        options: &Clog,
+        section: &BTreeMap<&String, &Vec<Commit>>,
+    ) -> WriterResult {
+        if section.is_empty() {
             write!(self.0, "\"commits\":null").unwrap();
-            return Ok(())
+            return Ok(());
         }
 
         write!(self.0, "\"commits\":[").unwrap();
@@ -118,21 +112,24 @@ impl<'a> JsonWriter<'a> {
                     write!(self.0, "{:?},", component).unwrap();
                 }
                 write!(
-                    self.0 , "\"subject\":{:?},\"commit_link\":{:?},\"closes\":",
+                    self.0,
+                    "\"subject\":{:?},\"commit_link\":{:?},\"closes\":",
                     entry.subject,
-                    options.link_style
-                           .commit_link(&*entry.hash, &*options.repo)
-                ).unwrap();
+                    options.link_style.commit_link(&*entry.hash, &*options.repo)
+                )
+                .unwrap();
 
                 if !entry.closes.is_empty() {
                     write!(self.0, "[").unwrap();
                     let mut c_it = entry.closes.iter().peekable();
                     while let Some(issue) = c_it.next() {
-                        write!(self.0,
+                        write!(
+                            self.0,
                             "{{\"issue\":{},\"issue_link\":{:?}}}",
                             issue,
                             options.link_style.issue_link(issue, &options.repo)
-                        ).unwrap();
+                        )
+                        .unwrap();
                         if c_it.peek().is_some() {
                             debugln!("There are more close commits, adding comma");
                             write!(self.0, ",").unwrap();
@@ -140,21 +137,22 @@ impl<'a> JsonWriter<'a> {
                             debugln!("There are no more close commits, no comma required");
                         }
                     }
-                    write!(self.0,
-                        "],").unwrap();
-                }  else {
+                    write!(self.0, "],").unwrap();
+                } else {
                     write!(self.0, "null,").unwrap();
                 }
-                write!(self.0 , "\"breaks\":").unwrap();
+                write!(self.0, "\"breaks\":").unwrap();
                 if !entry.breaks.is_empty() {
                     write!(self.0, "[").unwrap();
                     let mut c_it = entry.closes.iter().peekable();
                     while let Some(issue) = c_it.next() {
-                        write!(self.0,
+                        write!(
+                            self.0,
                             "{{\"issue\":{},\"issue_link\":{:?}}}",
                             issue,
                             options.link_style.issue_link(issue, &options.repo)
-                        ).unwrap();
+                        )
+                        .unwrap();
                         if c_it.peek().is_some() {
                             debugln!("There are more breaks commits, adding comma");
                             write!(self.0, ",").unwrap();
@@ -162,9 +160,8 @@ impl<'a> JsonWriter<'a> {
                             debugln!("There are no more breaks commits, no comma required");
                         }
                     }
-                    write!(self.0,
-                        "]}}").unwrap();
-                }  else {
+                    write!(self.0, "]}}").unwrap();
+                } else {
                     write!(self.0, "null}}").unwrap();
                 }
                 if e_it.peek().is_some() {
@@ -202,7 +199,8 @@ impl<'a> FormatWriter for JsonWriter<'a> {
         }
 
         write!(self.0, "\"sections\":").unwrap();
-        let mut s_it = options.section_map
+        let mut s_it = options
+            .section_map
             .keys()
             .filter_map(|sec| sm.sections.get(sec).map(|compmap| (sec, compmap)))
             .peekable();
@@ -213,10 +211,11 @@ impl<'a> FormatWriter for JsonWriter<'a> {
                 debugln!("Writing section: {}", &*sec);
                 write!(self.0, "{{\"title\":{:?},", &*sec).unwrap();
 
-                try!(self.write_section(options, &compmap.iter().collect::<BTreeMap<_,_>>()));
+                self.write_section(options, &compmap.iter().collect::<BTreeMap<_, _>>())?;
 
                 write!(self.0, "}}").unwrap();
-                if s_it.peek().is_some() { //&& s_it.peek().unwrap().0.len() > 0 {
+                if s_it.peek().is_some() {
+                    //&& s_it.peek().unwrap().0.len() > 0 {
                     debugln!("There are more sections, adding comma");
                     write!(self.0, ",").unwrap();
                 } else {
