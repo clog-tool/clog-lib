@@ -859,12 +859,12 @@ impl Clog {
         }
 
         Commit {
-            hash: hash,
+            hash,
             subject: subject.unwrap().to_owned(),
             component: component.unwrap_or("".to_string()).to_owned(),
-            closes: closes,
-            breaks: breaks,
-            commit_type: commit_type,
+            closes,
+            breaks,
+            commit_type,
         }
     }
 
