@@ -3,19 +3,19 @@ use std::convert::AsRef;
 use std::env;
 use std::fmt;
 use std::fs::File;
-use std::io::{stdout, BufWriter, Write, Read};
+use std::io::{stdout, BufWriter, Read, Write};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use indexmap::IndexMap;
 use regex::Regex;
-use toml::{Value, Parser};
+use toml::{Parser, Value};
 
-use git::{Commits, Commit};
-use fmt::{ChangelogFormat, FormatWriter, WriterResult, MarkdownWriter, JsonWriter};
-use sectionmap::SectionMap;
 use error::Error;
+use fmt::{ChangelogFormat, FormatWriter, JsonWriter, MarkdownWriter, WriterResult};
+use git::{Commit, Commits};
 use link_style::LinkStyle;
+use sectionmap::SectionMap;
 
 use CLOG_CONFIG_FILE;
 
@@ -77,12 +77,14 @@ pub struct Clog {
     pub breaks_regex: Regex,
     pub breaking_regex: Regex,
     /// The format to output the changelog in (Defaults to Markdown)
-    pub out_format: ChangelogFormat
+    pub out_format: ChangelogFormat,
 }
 
 impl fmt::Debug for Clog {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{{
+        write!(
+            f,
+            "{{
             grep: {:?}
             format: {:?}
             repo: {:?}
@@ -104,50 +106,56 @@ impl fmt::Debug for Clog {
             breaking_regex: {:?}
             out_format: {:?}
         }}",
-        self.grep,
-        self.format,
-        self.repo,
-        self.link_style,
-        self.version,
-        self.patch_ver,
-        self.subtitle,
-        self.from,
-        self.to,
-        self.infile,
-        self.outfile,
-        self.section_map,
-        self.component_map,
-        self.git_dir,
-        self.git_work_tree,
-        self.regex,
-        self.closes_regex,
-        self.breaks_regex,
-        self.breaking_regex,
-        self.out_format,
+            self.grep,
+            self.format,
+            self.repo,
+            self.link_style,
+            self.version,
+            self.patch_ver,
+            self.subtitle,
+            self.from,
+            self.to,
+            self.infile,
+            self.outfile,
+            self.section_map,
+            self.component_map,
+            self.git_dir,
+            self.git_work_tree,
+            self.regex,
+            self.closes_regex,
+            self.breaks_regex,
+            self.breaking_regex,
+            self.out_format,
         )
     }
 }
-
 
 impl Clog {
     fn _new() -> Clog {
         debugln!("Creating default clog with _new()");
         let mut sections = IndexMap::new();
-        sections.insert("Features".to_owned(), vec!["ft".to_owned(), "feat".to_owned()]);
-        sections.insert("Bug Fixes".to_owned(), vec!["fx".to_owned(), "fix".to_owned()]);
+        sections.insert(
+            "Features".to_owned(),
+            vec!["ft".to_owned(), "feat".to_owned()],
+        );
+        sections.insert(
+            "Bug Fixes".to_owned(),
+            vec!["fx".to_owned(), "fix".to_owned()],
+        );
         sections.insert("Performance".to_owned(), vec!["perf".to_owned()]);
         sections.insert("Unknown".to_owned(), vec!["unk".to_owned()]);
         sections.insert("Breaking Changes".to_owned(), vec!["breaks".to_owned()]);
 
         Clog {
-            grep: format!("{}BREAKING'",
-                sections.values()
-                        .map(|v| v.iter().fold(String::new(), |acc, al| {
-                            acc + &format!("^{}|", al)[..]
-                        }))
-                        .fold(String::new(), |acc, al| {
-                            acc + &format!("^{}|", al)[..]
-                        })),
+            grep: format!(
+                "{}BREAKING'",
+                sections
+                    .values()
+                    .map(|v| v
+                        .iter()
+                        .fold(String::new(), |acc, al| { acc + &format!("^{}|", al)[..] }))
+                    .fold(String::new(), |acc, al| { acc + &format!("^{}|", al)[..] })
+            ),
             format: "%H%n%s%n%b%n==END==".to_owned(),
             repo: "".to_owned(),
             link_style: LinkStyle::Github,
@@ -166,7 +174,7 @@ impl Clog {
             regex: regex!(r"^([^:\(]+?)(?:\(([^\)]*?)?\))?:(.*)"),
             closes_regex: regex!(r"(?:Closes|Fixes|Resolves)\s((?:#(\d+)(?:,\s)?)+)"),
             breaks_regex: regex!(r"(?:Breaks|Broke)\s((?:#(\d+)(?:,\s)?)+)"),
-            breaking_regex: regex!(r"(?i:breaking)")
+            breaking_regex: regex!(r"(?i:breaking)"),
         }
     }
 
@@ -202,13 +210,13 @@ impl Clog {
     /// });
     /// ```
     pub fn with_all<P: AsRef<Path>>(git_dir: P, work_tree: P, cfg_file: P) -> BuilderResult {
-        debugln!("Creating clog with \n\tgit_dir: {:?}\n\twork_tree: {:?}\n\tcfg_file: {:?}",
+        debugln!(
+            "Creating clog with \n\tgit_dir: {:?}\n\twork_tree: {:?}\n\tcfg_file: {:?}",
             git_dir.as_ref(),
             work_tree.as_ref(),
-            cfg_file.as_ref());
-        let clog = try!(Clog::with_dirs(git_dir,
-                                            work_tree));
-        clog.try_config_file(cfg_file.as_ref())
+            cfg_file.as_ref()
+        );
+        Clog::with_dirs(git_dir, work_tree)?.try_config_file(cfg_file.as_ref())
     }
 
     /// Creates a `Clog` struct using a specific git working directory OR project directory as
@@ -227,11 +235,12 @@ impl Clog {
     /// });
     /// ```
     pub fn with_dir_and_file<P: AsRef<Path>>(dir: P, cfg_file: P) -> BuilderResult {
-        debugln!("Creating clog with \n\tdir: {:?}\n\tcfg_file: {:?}",
+        debugln!(
+            "Creating clog with \n\tdir: {:?}\n\tcfg_file: {:?}",
             dir.as_ref(),
-            cfg_file.as_ref());
-        let clog = try!(Clog::_with_dir(dir));
-        clog.try_config_file(cfg_file.as_ref())
+            cfg_file.as_ref()
+        );
+        Clog::_with_dir(dir)?.try_config_file(cfg_file.as_ref())
     }
 
     fn _with_dir<P: AsRef<Path>>(dir: P) -> BuilderResult {
@@ -271,8 +280,7 @@ impl Clog {
     /// ```
     pub fn with_dir<P: AsRef<Path>>(dir: P) -> BuilderResult {
         debugln!("Creating clog with \n\tdir: {:?}", dir.as_ref());
-        let clog = try!(Clog::_with_dir(dir));
-        clog.try_config_file(Path::new(CLOG_CONFIG_FILE))
+        Clog::_with_dir(dir)?.try_config_file(Path::new(CLOG_CONFIG_FILE))
     }
 
     /// Creates a `Clog` struct using a specific git working directory AND a project directory.
@@ -290,9 +298,11 @@ impl Clog {
     /// });
     /// ```
     pub fn with_dirs<P: AsRef<Path>>(git_dir: P, work_tree: P) -> BuilderResult {
-        debugln!("Creating clog with \n\tgit_dir: {:?}\n\twork_tree: {:?}",
+        debugln!(
+            "Creating clog with \n\tgit_dir: {:?}\n\twork_tree: {:?}",
             git_dir.as_ref(),
-            work_tree.as_ref());
+            work_tree.as_ref()
+        );
         let mut clog = Clog::_new();
         clog.git_dir = Some(git_dir.as_ref().to_path_buf());
         clog.git_work_tree = Some(work_tree.as_ref().to_path_buf());
@@ -373,8 +383,10 @@ impl Clog {
                 }
             };
 
-            toml_from_latest =
-                clog_table.lookup("from-latest-tag").unwrap_or(&Value::Boolean(false)).as_bool();
+            toml_from_latest = clog_table
+                .lookup("from-latest-tag")
+                .unwrap_or(&Value::Boolean(false))
+                .as_bool();
             toml_repo = match clog_table.lookup("repository") {
                 Some(val) => Some(val.as_str().unwrap_or("").to_owned()),
                 None => Some("".to_owned()),
@@ -409,37 +421,37 @@ impl Clog {
                 None => None,
             };
             match toml_table.get("sections") {
-                Some(table) => {
-                    match table.as_table() {
-                        Some(table) => {
-                            for (sec, val) in table.iter() {
-                                if let Some(vec) = val.as_slice() {
-                                    let alias_vec = vec.iter().map(|v| v.as_str().unwrap_or("").to_owned()).collect::<Vec<_>>();
-                                    self.section_map.insert(sec.to_owned(), alias_vec);
-                                }
+                Some(table) => match table.as_table() {
+                    Some(table) => {
+                        for (sec, val) in table.iter() {
+                            if let Some(vec) = val.as_slice() {
+                                let alias_vec = vec
+                                    .iter()
+                                    .map(|v| v.as_str().unwrap_or("").to_owned())
+                                    .collect::<Vec<_>>();
+                                self.section_map.insert(sec.to_owned(), alias_vec);
                             }
                         }
-                        None => (),
                     }
-                }
+                    None => (),
+                },
                 None => (),
             };
             match toml_table.get("components") {
-                Some(table) => {
-                    match table.as_table() {
-                        Some(table) => {
-                            for (comp, val) in table.iter() {
-                                if let Some(vec) = val.as_slice() {
-                                    let alias_vec = vec.iter()
-                                        .map(|v| v.as_str().unwrap_or("").to_owned())
-                                        .collect::<Vec<_>>();
-                                    self.component_map.insert(comp.to_owned(), alias_vec);
-                                }
+                Some(table) => match table.as_table() {
+                    Some(table) => {
+                        for (comp, val) in table.iter() {
+                            if let Some(vec) = val.as_slice() {
+                                let alias_vec = vec
+                                    .iter()
+                                    .map(|v| v.as_str().unwrap_or("").to_owned())
+                                    .collect::<Vec<_>>();
+                                self.component_map.insert(comp.to_owned(), alias_vec);
                             }
                         }
-                        None => (),
                     }
-                }
+                    None => (),
+                },
                 None => (),
             };
         } else {
@@ -485,7 +497,6 @@ impl Clog {
         debugln!("Returning clog:\n{:?}", self);
         Ok(self)
     }
-
 
     /// Sets the grep search pattern for finding commits.
     ///
@@ -791,20 +802,21 @@ impl Clog {
         };
 
         let output = Command::new("git")
-                .arg(&self.get_git_dir()[..])
-                .arg(&self.get_git_work_tree()[..])
-                .arg("log")
-                .arg("-E")
-                .arg(&format!("--grep={}", self.grep))
-                .arg(&format!("--format={}", self.format))
-                .arg(&range)
-                .output().unwrap_or_else(|e| panic!("Failed to run 'git log' with error: {}", e));
+            .arg(&self.get_git_dir()[..])
+            .arg(&self.get_git_work_tree()[..])
+            .arg("log")
+            .arg("-E")
+            .arg(&format!("--grep={}", self.grep))
+            .arg(&format!("--format={}", self.format))
+            .arg(&range)
+            .output()
+            .unwrap_or_else(|e| panic!("Failed to run 'git log' with error: {}", e));
 
         String::from_utf8_lossy(&output.stdout)
-                .split("\n==END==\n")
-                .map(|commit_str| { self.parse_raw_commit(commit_str) })
-                .filter(| entry| entry.commit_type != "Unknown")
-                .collect()
+            .split("\n==END==\n")
+            .map(|commit_str| self.parse_raw_commit(commit_str))
+            .filter(|entry| entry.commit_type != "Unknown")
+            .collect()
     }
 
     #[doc(hidden)]
@@ -813,21 +825,25 @@ impl Clog {
 
         let hash = lines.next().unwrap_or("").to_owned();
 
-
         let (subject, component, commit_type) =
             match lines.next().and_then(|s| self.regex.captures(s)) {
                 Some(caps) => {
                     let commit_type = self.section_for(caps.at(1).unwrap_or("")).to_owned();
-                    let component = caps.at(2).map(|component|
-                            match self.component_for(component) {
-                                    Some(alias) => alias.clone(),
-                                    None => component.to_owned(),
-                                }
-                                .to_owned());
+                    let component = caps.at(2).map(|component| {
+                        match self.component_for(component) {
+                            Some(alias) => alias.clone(),
+                            None => component.to_owned(),
+                        }
+                        .to_owned()
+                    });
                     let subject = caps.at(3);
                     (subject, component, commit_type)
                 }
-                None => (Some(""), Some("".to_owned()), self.section_for("unk").clone()),
+                None => (
+                    Some(""),
+                    Some("".to_owned()),
+                    self.section_for("unk").clone(),
+                ),
             };
         let mut closes = vec![];
         let mut breaks = vec![];
@@ -852,7 +868,7 @@ impl Clog {
             component: component.unwrap_or("".to_string()).to_owned(),
             closes: closes,
             breaks: breaks,
-            commit_type: commit_type
+            commit_type: commit_type,
         }
     }
 
@@ -870,12 +886,13 @@ impl Clog {
     /// ```
     pub fn get_latest_tag(&self) -> String {
         let output = Command::new("git")
-                .arg(&self.get_git_dir()[..])
-                .arg(&self.get_git_work_tree()[..])
-                .arg("rev-list")
-                .arg("--tags")
-                .arg("--max-count=1")
-                .output().unwrap_or_else(|e| panic!("Failed to run 'git rev-list' with error: {}",e));
+            .arg(&self.get_git_dir()[..])
+            .arg(&self.get_git_work_tree()[..])
+            .arg("rev-list")
+            .arg("--tags")
+            .arg("--max-count=1")
+            .output()
+            .unwrap_or_else(|e| panic!("Failed to run 'git rev-list' with error: {}", e));
         let buf = String::from_utf8_lossy(&output.stdout);
 
         buf.trim_matches('\n').to_owned()
@@ -895,12 +912,13 @@ impl Clog {
     /// ```
     pub fn get_latest_tag_ver(&self) -> String {
         let output = Command::new("git")
-                .arg(&self.get_git_dir()[..])
-                .arg(&self.get_git_work_tree()[..])
-                .arg("describe")
-                .arg("--tags")
-                .arg("--abbrev=0")
-                .output().unwrap_or_else(|e| panic!("Failed to run 'git describe' with error: {}",e));
+            .arg(&self.get_git_dir()[..])
+            .arg(&self.get_git_work_tree()[..])
+            .arg("describe")
+            .arg("--tags")
+            .arg("--abbrev=0")
+            .output()
+            .unwrap_or_else(|e| panic!("Failed to run 'git describe' with error: {}", e));
 
         String::from_utf8_lossy(&output.stdout).into_owned()
     }
@@ -919,11 +937,12 @@ impl Clog {
     /// ```
     pub fn get_last_commit(&self) -> String {
         let output = Command::new("git")
-                .arg(&self.get_git_dir()[..])
-                .arg(&self.get_git_work_tree()[..])
-                .arg("rev-parse")
-                .arg("HEAD")
-                .output().unwrap_or_else(|e| panic!("Failed to run 'git rev-parse' with error: {}", e));
+            .arg(&self.get_git_dir()[..])
+            .arg(&self.get_git_work_tree()[..])
+            .arg("rev-parse")
+            .arg("HEAD")
+            .output()
+            .unwrap_or_else(|e| panic!("Failed to run 'git rev-parse' with error: {}", e));
 
         String::from_utf8_lossy(&output.stdout).into_owned()
     }
@@ -935,14 +954,16 @@ impl Clog {
             "".to_owned()
         } else if self.git_dir.is_some() {
             // user supplied both
-            format!("--work-tree={}", self.git_work_tree.clone().unwrap().to_str().unwrap())
+            format!(
+                "--work-tree={}",
+                self.git_work_tree.clone().unwrap().to_str().unwrap()
+            )
         } else {
             // user only supplied a working tree i.e. /home/user/mycode
             let mut w = self.git_work_tree.clone().unwrap();
             w.pop();
             format!("--work-tree={}", w.to_str().unwrap())
         }
-
     }
 
     fn get_git_dir(&self) -> String {
@@ -952,7 +973,10 @@ impl Clog {
             "".to_owned()
         } else if self.git_work_tree.is_some() {
             // user supplied both
-            format!("--git-dir={}", self.git_dir.clone().unwrap().to_str().unwrap())
+            format!(
+                "--git-dir={}",
+                self.git_dir.clone().unwrap().to_str().unwrap()
+            )
         } else {
             // user only supplied a git dir i.e. /home/user/mycode/.git
             let mut g = self.git_dir.clone().unwrap();
@@ -975,14 +999,18 @@ impl Clog {
     /// assert_eq!("Features", section);
     /// ```
     pub fn section_for(&self, alias: &str) -> &String {
-        self.section_map.iter()
-                        .filter(|&(_, v)| v.iter().any(|s| s == alias))
-                        .map(|(k, _)| k)
-                        .next()
-                        .unwrap_or(self.section_map.keys()
-                                                   .filter(|&k| k == "Unknown")
-                                                   .next()
-                                                   .unwrap())
+        self.section_map
+            .iter()
+            .filter(|&(_, v)| v.iter().any(|s| s == alias))
+            .map(|(k, _)| k)
+            .next()
+            .unwrap_or(
+                self.section_map
+                    .keys()
+                    .filter(|&k| k == "Unknown")
+                    .next()
+                    .unwrap(),
+            )
     }
 
     /// Retrieves the full component name for a given alias (if one is defined)
@@ -1062,10 +1090,14 @@ impl Clog {
         let mut contents = String::with_capacity(256);
         if let Some(ref infile) = self.infile {
             debugln!("infile set to: {:?}", infile);
-            File::open(infile).map(|mut f| f.read_to_string(&mut contents).ok()).ok();
+            File::open(infile)
+                .map(|mut f| f.read_to_string(&mut contents).ok())
+                .ok();
         } else {
             debugln!("infile not set, trying the outfile");
-            File::open(cl.as_ref()).map(|mut f| f.read_to_string(&mut contents).ok()).ok();
+            File::open(cl.as_ref())
+                .map(|mut f| f.read_to_string(&mut contents).ok())
+                .ok();
         }
         contents.shrink_to_fit();
 
@@ -1074,11 +1106,11 @@ impl Clog {
                 match self.out_format {
                     ChangelogFormat::Markdown => {
                         let mut writer = MarkdownWriter::new(&mut file);
-                        try!(self.write_changelog_with(&mut writer));
+                        self.write_changelog_with(&mut writer)?;
                     }
                     ChangelogFormat::Json => {
                         let mut writer = JsonWriter::new(&mut file);
-                        try!(self.write_changelog_with(&mut writer));
+                        self.write_changelog_with(&mut writer)?;
                     }
                 }
             }
@@ -1112,7 +1144,9 @@ impl Clog {
     pub fn write_changelog_from<P: AsRef<Path>>(&self, cl: P) -> WriterResult {
         debugln!("Writing changelog from file: {:?}", cl.as_ref());
         let mut contents = String::with_capacity(256);
-        File::open(cl.as_ref()).map(|mut f| f.read_to_string(&mut contents).ok()).ok();
+        File::open(cl.as_ref())
+            .map(|mut f| f.read_to_string(&mut contents).ok())
+            .ok();
         contents.shrink_to_fit();
 
         if let Some(ref ofile) = self.outfile {
@@ -1122,20 +1156,20 @@ impl Clog {
                     match self.out_format {
                         ChangelogFormat::Markdown => {
                             let mut writer = MarkdownWriter::new(&mut file);
-                            try!(self.write_changelog_with(&mut writer));
+                            self.write_changelog_with(&mut writer)?;
                         }
                         ChangelogFormat::Json => {
                             let mut writer = JsonWriter::new(&mut file);
-                            try!(self.write_changelog_with(&mut writer));
+                            self.write_changelog_with(&mut writer)?;
                         }
                     }
                 }
 
                 if let Err(..) = file.write(contents.as_bytes()) {
-                    return Err(Error::WriteErr)
+                    return Err(Error::WriteErr);
                 }
             } else {
-                return Err(Error::CreateFileErr)
+                return Err(Error::CreateFileErr);
             }
         } else {
             debugln!("outfile not set, using stdout");
@@ -1145,11 +1179,11 @@ impl Clog {
                 match self.out_format {
                     ChangelogFormat::Markdown => {
                         let mut writer = MarkdownWriter::new(&mut out_buf);
-                        try!(self.write_changelog_with(&mut writer));
+                        self.write_changelog_with(&mut writer)?;
                     }
                     ChangelogFormat::Json => {
                         let mut writer = JsonWriter::new(&mut out_buf);
-                        try!(self.write_changelog_with(&mut writer));
+                        self.write_changelog_with(&mut writer)?;
                     }
                 }
             }
@@ -1188,11 +1222,13 @@ impl Clog {
     /// });
     /// ```
     pub fn write_changelog_with<W>(&self, writer: &mut W) -> WriterResult
-        where W: FormatWriter {
+    where
+        W: FormatWriter,
+    {
         debugln!("Writing changelog from writer");
         let sm = SectionMap::from_commits(self.get_commits());
 
-        try!(writer.write_changelog(self, &sm));
+        writer.write_changelog(self, &sm)?;
 
         Ok(())
     }

@@ -4,9 +4,9 @@ use std::io;
 use time;
 
 use clog::Clog;
-use git::Commit;
 use error::Error;
 use fmt::{FormatWriter, WriterResult};
+use git::Commit;
 use sectionmap::SectionMap;
 
 /// Wraps a `std::io::Write` object to write `clog` output in a Markdown format
@@ -37,7 +37,6 @@ use sectionmap::SectionMap;
 /// });
 /// ```
 pub struct MarkdownWriter<'a>(&'a mut dyn io::Write);
-
 
 impl<'a> MarkdownWriter<'a> {
     /// Creates a new instance of the `MarkdownWriter` struct using a `std::io::Write` object.
@@ -94,16 +93,20 @@ impl<'a> MarkdownWriter<'a> {
     }
 
     /// Writes a particular section of a changelog
-    fn write_section(&mut self,
-                     options: &Clog,
-                     title: &str,
-                     section: &BTreeMap<&String, &Vec<Commit>>)
-                     -> WriterResult {
+    fn write_section(
+        &mut self,
+        options: &Clog,
+        title: &str,
+        section: &BTreeMap<&String, &Vec<Commit>>,
+    ) -> WriterResult {
         if section.len() == 0 {
-            return Ok(())
+            return Ok(());
         }
 
-        if let Err(..) = self.0.write(&format!("\n#### {}\n\n", title)[..].as_bytes()) {
+        if let Err(..) = self
+            .0
+            .write(&format!("\n#### {}\n\n", title)[..].as_bytes())
+        {
             return Err(Error::WriteErr);
         }
 
@@ -111,7 +114,7 @@ impl<'a> MarkdownWriter<'a> {
             let nested = (entries.len() > 1) && !component.is_empty();
 
             let prefix = if nested {
-                if let Err(..) = write!(self.0 , "* **{}:**\n", component) {
+                if let Err(..) = write!(self.0, "* **{}:**\n", component) {
                     return Err(Error::WriteErr);
                 }
                 "  *".to_owned()
@@ -123,45 +126,59 @@ impl<'a> MarkdownWriter<'a> {
 
             for entry in entries.iter() {
                 if let Err(..) = write!(
-                                    self.0 , "{} {} ([{}]({})",
-                                    prefix,
-                                    entry.subject,
-                                    &entry.hash[0..8],
-                                    options.link_style
-                                           .commit_link(&*entry.hash, &options.repo[..])
-                                ) {
+                    self.0,
+                    "{} {} ([{}]({})",
+                    prefix,
+                    entry.subject,
+                    &entry.hash[0..8],
+                    options
+                        .link_style
+                        .commit_link(&*entry.hash, &options.repo[..])
+                ) {
                     return Err(Error::WriteErr);
                 }
 
                 if !entry.closes.is_empty() {
-                    let closes_string = entry.closes.iter()
-                                                    .map(|s| format!("[#{}]({})",
-                                                        &*s,
-                                                        options.link_style.issue_link(&*s, &options.repo)))
-                                                    .collect::<Vec<String>>()
-                                                    .join(", ");
+                    let closes_string = entry
+                        .closes
+                        .iter()
+                        .map(|s| {
+                            format!(
+                                "[#{}]({})",
+                                &*s,
+                                options.link_style.issue_link(&*s, &options.repo)
+                            )
+                        })
+                        .collect::<Vec<String>>()
+                        .join(", ");
 
-                    if let Err(..) = write!(self.0 , ", closes {}", closes_string) {
+                    if let Err(..) = write!(self.0, ", closes {}", closes_string) {
                         return Err(Error::WriteErr);
                     }
                 }
                 if !entry.breaks.is_empty() {
-                    let breaks_string = entry.breaks.iter()
-                                                    .map(|s| format!("[#{}]({})",
-                                                        &*s,
-                                                        options.link_style.issue_link(&*s, &options.repo)))
-                                                    .collect::<Vec<String>>()
-                                                    .join(", ");
+                    let breaks_string = entry
+                        .breaks
+                        .iter()
+                        .map(|s| {
+                            format!(
+                                "[#{}]({})",
+                                &*s,
+                                options.link_style.issue_link(&*s, &options.repo)
+                            )
+                        })
+                        .collect::<Vec<String>>()
+                        .join(", ");
 
                     // 5 = "[#]()" i.e. a commit message that only said "BREAKING"
                     if breaks_string.len() != 5 {
-                        if let Err(..) = write!(self.0 , ", breaks {}", breaks_string) {
+                        if let Err(..) = write!(self.0, ", breaks {}", breaks_string) {
                             return Err(Error::WriteErr);
                         }
                     }
                 }
 
-                if let Err(..) = write!(self.0 , ")\n") {
+                if let Err(..) = write!(self.0, ")\n") {
                     return Err(Error::WriteErr);
                 }
             }
@@ -173,8 +190,8 @@ impl<'a> MarkdownWriter<'a> {
     /// Writes some contents to the `Write` writer object
     #[allow(dead_code)]
     fn write(&mut self, content: &str) -> io::Result<()> {
-        try!(write!(self.0 , "\n\n\n"));
-        write!(self.0 , "{}", content)
+        write!(self.0, "\n\n\n")?;
+        write!(self.0, "{}", content)
     }
 }
 
@@ -185,11 +202,16 @@ impl<'a> FormatWriter for MarkdownWriter<'a> {
         }
 
         // Get the section names ordered from `options.section_map`
-        let s_it = options.section_map
+        let s_it = options
+            .section_map
             .keys()
             .filter_map(|sec| sm.sections.get(sec).map(|secmap| (sec, secmap)));
         for (sec, secmap) in s_it {
-            try!(self.write_section(options, &sec[..], &secmap.iter().collect::<BTreeMap<_,_>>()));
+            self.write_section(
+                options,
+                &sec[..],
+                &secmap.iter().collect::<BTreeMap<_, _>>(),
+            )?;
         }
 
         self.0.flush().unwrap();
