@@ -93,7 +93,7 @@ impl<'a> JsonWriter<'a> {
         options: &Clog,
         section: &BTreeMap<&String, &Vec<Commit>>,
     ) -> WriterResult {
-        if section.len() == 0 {
+        if section.is_empty() {
             write!(self.0, "\"commits\":null").unwrap();
             return Ok(());
         }

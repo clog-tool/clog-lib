@@ -99,7 +99,7 @@ impl<'a> MarkdownWriter<'a> {
         title: &str,
         section: &BTreeMap<&String, &Vec<Commit>>,
     ) -> WriterResult {
-        if section.len() == 0 {
+        if section.is_empty() {
             return Ok(());
         }
 
