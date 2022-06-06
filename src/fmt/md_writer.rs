@@ -85,8 +85,8 @@ impl<'a> MarkdownWriter<'a> {
             Err(_) => {
                 write!(
                     self.0,
-                    "<a name=\"{}\"></a>\n{} ({})\n\n",
-                    options.version, version_text, "XXXX-XX-XX"
+                    "<a name=\"{}\"></a>\n{} (XXXX-XX-XX)\n\n",
+                    options.version, version_text
                 )
             }
         }
