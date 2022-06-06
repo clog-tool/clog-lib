@@ -1,13 +1,13 @@
-/// Determines the hyperlink style used in commit and issue links. Defaults to `LinksStyle::Github`
-///
-/// # Example
-///
-/// ```no_run
-/// # use clog::{LinkStyle, Clog};
-/// let mut clog = Clog::new().unwrap();
-/// clog.link_style(LinkStyle::Stash);
-/// ```
 clog_enum! {
+    /// Determines the hyperlink style used in commit and issue links. Defaults to `LinksStyle::Github`
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// # use clog::{LinkStyle, Clog};
+    /// let mut clog = Clog::new().unwrap();
+    /// clog.link_style(LinkStyle::Stash);
+    /// ```
     #[derive(Debug)]
     pub enum LinkStyle {
         Github,
