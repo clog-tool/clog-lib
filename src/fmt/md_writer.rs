@@ -111,7 +111,7 @@ impl<'a> MarkdownWriter<'a> {
             let nested = (entries.len() > 1) && !component.is_empty();
 
             let prefix = if nested {
-                if let Err(..) = write!(self.0, "* **{}:**\n", component) {
+                if let Err(..) = writeln!(self.0, "* **{}:**", component) {
                     return Err(Error::WriteErr);
                 }
                 "  *".to_owned()
@@ -175,7 +175,7 @@ impl<'a> MarkdownWriter<'a> {
                     }
                 }
 
-                if let Err(..) = write!(self.0, ")\n") {
+                if let Err(..) = writeln!(self.0, ")") {
                     return Err(Error::WriteErr);
                 }
             }
