@@ -75,7 +75,6 @@ macro_rules! clog_enum {
             type Err = String;
 
             fn from_str(s: &str) -> Result<Self,Self::Err> {
-                use ::std::ascii::AsciiExt;
                 match s {
                     $(stringify!($v) |
                     _ if s.eq_ignore_ascii_case(stringify!($v)) => Ok($e::$v),)+
@@ -119,7 +118,6 @@ macro_rules! clog_enum {
             type Err = String;
 
             fn from_str(s: &str) -> Result<Self,Self::Err> {
-                use ::std::ascii::AsciiExt;
                 match s {
                     $(stringify!($v) |
                     _ if s.eq_ignore_ascii_case(stringify!($v)) => Ok($e::$v),)+
