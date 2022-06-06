@@ -404,22 +404,18 @@ impl Clog {
                 },
                 None => Some(LinkStyle::Github),
             };
-            toml_outfile = match clog_table.lookup("outfile") {
-                Some(val) => Some(val.as_str().unwrap_or("").to_owned()),
-                None => None,
-            };
-            toml_infile = match clog_table.lookup("infile") {
-                Some(val) => Some(val.as_str().unwrap_or("").to_owned()),
-                None => None,
-            };
-            toml_changelog = match clog_table.lookup("changelog") {
-                Some(val) => Some(val.as_str().unwrap_or("").to_owned()),
-                None => None,
-            };
-            toml_format = match clog_table.lookup("output-format") {
-                Some(val) => Some(val.as_str().unwrap_or("").to_owned()),
-                None => None,
-            };
+            toml_outfile = clog_table
+                .lookup("outfile")
+                .map(|val| val.as_str().unwrap_or("").to_owned());
+            toml_infile = clog_table
+                .lookup("infile")
+                .map(|val| val.as_str().unwrap_or("").to_owned());
+            toml_changelog = clog_table
+                .lookup("changelog")
+                .map(|val| val.as_str().unwrap_or("").to_owned());
+            toml_format = clog_table
+                .lookup("output-format")
+                .map(|val| val.as_str().unwrap_or("").to_owned());
             match toml_table.get("sections") {
                 Some(table) => match table.as_table() {
                     Some(table) => {
