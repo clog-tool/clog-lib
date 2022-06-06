@@ -103,10 +103,7 @@ impl<'a> MarkdownWriter<'a> {
             return Ok(());
         }
 
-        if let Err(..) = self
-            .0
-            .write(&format!("\n#### {}\n\n", title)[..].as_bytes())
-        {
+        if let Err(..) = write!(self.0, "\n#### {}\n\n", title) {
             return Err(Error::WriteErr);
         }
 
@@ -121,7 +118,7 @@ impl<'a> MarkdownWriter<'a> {
             } else if !component.is_empty() {
                 format!("* **{}:**", component)
             } else {
-                format!("* ")
+                String::from("* ")
             };
 
             for entry in entries.iter() {
