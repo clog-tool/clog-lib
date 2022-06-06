@@ -998,7 +998,7 @@ impl Clog {
             .iter()
             .find(|&(_, v)| v.iter().any(|s| s == alias))
             .map(|(k, _)| k)
-            .unwrap_or(self.section_map.keys().find(|&k| k == "Unknown").unwrap())
+            .unwrap_or_else(|| self.section_map.keys().find(|&k| k == "Unknown").unwrap())
     }
 
     /// Retrieves the full component name for a given alias (if one is defined)
