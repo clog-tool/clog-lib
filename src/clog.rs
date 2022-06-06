@@ -996,16 +996,9 @@ impl Clog {
     pub fn section_for(&self, alias: &str) -> &String {
         self.section_map
             .iter()
-            .filter(|&(_, v)| v.iter().any(|s| s == alias))
+            .find(|&(_, v)| v.iter().any(|s| s == alias))
             .map(|(k, _)| k)
-            .next()
-            .unwrap_or(
-                self.section_map
-                    .keys()
-                    .filter(|&k| k == "Unknown")
-                    .next()
-                    .unwrap(),
-            )
+            .unwrap_or(self.section_map.keys().find(|&k| k == "Unknown").unwrap())
     }
 
     /// Retrieves the full component name for a given alias (if one is defined)
