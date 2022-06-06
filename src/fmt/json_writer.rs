@@ -37,7 +37,7 @@ use sectionmap::SectionMap;
 ///     e.exit();
 /// });
 /// ```
-pub struct JsonWriter<'a>(&'a mut io::Write);
+pub struct JsonWriter<'a>(&'a mut dyn io::Write);
 
 
 impl<'a> JsonWriter<'a> {

@@ -36,7 +36,7 @@ use sectionmap::SectionMap;
 ///     e.exit();
 /// });
 /// ```
-pub struct MarkdownWriter<'a>(&'a mut io::Write);
+pub struct MarkdownWriter<'a>(&'a mut dyn io::Write);
 
 
 impl<'a> MarkdownWriter<'a> {
