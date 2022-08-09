@@ -4,7 +4,8 @@ readme = "README.md"
 keywords = ["git", "log", "changelog", "parser", "parse"]
 license = "MIT"
 name = "clog"
-version = "0.9.1"
+edition = "2021"
+version = "0.10.0"
 authors = ["Christoph Burgdorf <christoph.burgdorf@bvsn.org>"]
 description = "A conventional changelog for the rest of us"
 exclude = ["docs/*"]
@@ -14,10 +15,11 @@ indexmap = "1.0.1"
 regex = "0.1.41"
 toml = "0.1.23"
 time = "0.1.33"
+thiserror = "1.0.32"
+strum = { version = "0.24.1", features = ["derive"] }
+log = "0.4.17"
 
 [features]
 default = []
-
-# For debugging output
-debug = []
+debug = [] # For debugging output
 unstable = []

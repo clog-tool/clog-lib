@@ -1,32 +1,49 @@
 clog
 ====
 
-[![Join the chat at https://gitter.im/thoughtram/clog](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/thoughtram/clog?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Join the chat at
+https://gitter.im/thoughtram/clog](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/thoughtram/clog?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-[![Build Status](https://travis-ci.org/clog-tool/clog-lib.png?branch=master)](https://travis-ci.org/thoughtram/clog)
+[![Build
+Status](https://travis-ci.org/clog-tool/clog-lib.png?branch=master)](https://travis-ci.org/thoughtram/clog)
 
-A library for generating a [conventional][convention] changelog from git metadata, written in Rust
+A library for generating a [conventional][convention] changelog from git
+metadata, written in Rust
 
-[convention]: https://github.com/ajoslin/conventional-changelog/blob/a5505865ff3dd710cf757f50530e73ef0ca641da/conventions/angular.md
+[convention]:
+https://github.com/ajoslin/conventional-changelog/blob/a5505865ff3dd710cf757f50530e73ef0ca641da/conventions/angular.md
 
 ## About
 
-`clog` creates a changelog automatically from your local git metadata. See the `clog`s [changelog.md](https://github.com/clog-tool/clog-lib/blob/master/changelog.md) for an example.
+`clog` creates a changelog automatically from your local git metadata. See the
+`clog`s
+[changelog.md](https://github.com/clog-tool/clog-lib/blob/master/changelog.md)
+for an example.
 
-The way this works, is every time you make a commit, you ensure your commit subject line follows the [conventional](https://github.com/ajoslin/conventional-changelog/blob/a5505865ff3dd710cf757f50530e73ef0ca641da/conventions/angular.md) format.
+The way this works, is every time you make a commit, you ensure your commit
+subject line follows the
+[conventional](https://github.com/ajoslin/conventional-changelog/blob/a5505865ff3dd710cf757f50530e73ef0ca641da/conventions/angular.md)
+format.
 
-*NOTE:* `clog` also supports empty components by making commit messages such as `alias: message` or `alias(): message` (i.e. without the component)
+*NOTE:* `clog` also supports empty components by making commit messages such as
+`alias: message` or `alias(): message` (i.e. without the component)
 
 
 ## Usage
 
-There are two ways to use `clog`, as a binary via the command line (See [clog-cli](https://github.com/clog-tool/clog-cli) for details) or as a library in your applicaitons.
+There are two ways to use `clog`, as a binary via the command line (See
+[clog-cli](https://github.com/clog-tool/clog-cli) for details) or as a library
+in your applicaitons.
 
-See the [documentation](http://clog-tool.github.io/clog-lib/) for information on using `clog` in your applications.
+See the [documentation](http://clog-tool.github.io/clog-lib/) for information
+on using `clog` in your applications.
 
-In order to see it in action, you'll need a repository that already has some of those specially crafted commit messages in it's history. For this, we'll use the `clog` repository itself.
+In order to see it in action, you'll need a repository that already has some of
+those specially crafted commit messages in it's history. For this, we'll use
+the `clog` repository itself.
 
- 1. Clone the `clog-lib` repository (we will clone to our home directory to make things simple, feel free to change it)
+ 1. Clone the `clog-lib` repository (we will clone to our home directory to
+    make things simple, feel free to change it)
 
 ```sh
 $ git clone https://github.com/thoughtram/clog ~/clog
@@ -48,13 +65,9 @@ use clog::Clog;
 
 fn main() {
     // Create the struct
-    let mut clog = Clog::with_dir("~/clog").unwrap_or_else(|e| {
-        // Prints the error message and exits
-        e.exit();
-    });
-
-    // Set some options
-    clog.repository("https://github.com/thoughtram/clog")
+    let mut clog = Clog::with_dir("~/clog")
+        .unwrap()
+        .repository("https://github.com/thoughtram/clog")
         .subtitle("Crazy Dog")
         .changelog("changelog.md")
         .from("6d8183f")
@@ -63,9 +76,7 @@ fn main() {
     // Write the changelog to the current working directory
     //
     // Alternatively we could have used .write_changelog_to("/somedir/some_file.md")
-    clog.write_changelog().unwrap_or_else(|e| {
-        e.exit();
-    });
+    clog.write_changelog().unwrap();
 }
 ```
 
@@ -74,7 +85,9 @@ fn main() {
 
 ### Default Options
 
-`clog` can also be configured using a default configuration file so that you don't have to specify all the options each time you want to update your changelog. To do this add a `.clog.toml` file to your repository.
+`clog` can also be configured using a default configuration file so that you
+don't have to specify all the options each time you want to update your
+changelog. To do this add a `.clog.toml` file to your repository.
 
 ```toml
 [clog]
@@ -123,16 +136,22 @@ from-latest-tag = true
 
 ### Custom Sections
 
-By default, `clog` will display three sections in your changelog, `Features`, `Performance`, and `Bug Fixes`. You can add additional sections by using a `.clog.toml` file. To add more sections, simply add a `[sections]` table, along with the section name and aliases you'd like to use in your commit messages:
+By default, `clog` will display three sections in your changelog, `Features`,
+`Performance`, and `Bug Fixes`. You can add additional sections by using a
+`.clog.toml` file. To add more sections, simply add a `[sections]` table, along
+with the section name and aliases you'd like to use in your commit messages:
 
 ```toml
 [sections]
 MySection = ["mysec", "ms"]
 ```
 
-Now if you make a commit message such as `mysec(Component): some message` or `ms(Component): some message` there will be a new "MySection" section along side the "Features" and "Bug Fixes" areas.
+Now if you make a commit message such as `mysec(Component): some message` or
+`ms(Component): some message` there will be a new "MySection" section along
+side the "Features" and "Bug Fixes" areas.
 
-*NOTE:* Sections with spaces are suppported, such as `"My Special Section" = ["ms", "mysec"]`
+*NOTE:* Sections with spaces are suppported, such as `"My Special Section" =
+["ms", "mysec"]`
 
 ### Component Aliases
 
@@ -152,7 +171,8 @@ With this configuration, `feat(comp): message` will be displayed as the
 
 ## Companion Projects
 
-- [Commitizen](http://commitizen.github.io/cz-cli/) - A command line tool that helps you writing better commit messages.
+- [Commitizen](http://commitizen.github.io/cz-cli/) - A command line tool that
+  helps you writing better commit messages.
 
 ## LICENSE
 
