@@ -4,20 +4,24 @@ readme = "README.md"
 keywords = ["git", "log", "changelog", "parser", "parse"]
 license = "MIT"
 name = "clog"
-version = "0.9.1"
+edition = "2021"
+version = "0.10.0"
+rust-version = "1.58.1" # MSRV
 authors = ["Christoph Burgdorf <christoph.burgdorf@bvsn.org>"]
 description = "A conventional changelog for the rest of us"
 exclude = ["docs/*"]
 
 [dependencies]
-indexmap = "1.0.1"
-regex = "0.1.41"
-toml = "0.1.23"
-time = "0.1.33"
+indexmap = { version = "1.0.1", features = ["serde"] }
+regex = "1.6.0"
+toml = "0.5.9"
+time = { version = "0.3.12", features = ["formatting"] }
+thiserror = "1.0.32"
+strum = { version = "0.24.1", features = ["derive"] }
+log = "0.4.17"
+serde = { version = "1.0.143", features = ["derive"] }
 
 [features]
 default = []
-
-# For debugging output
-debug = []
+debug = [] # For debugging output
 unstable = []

@@ -1,22 +1,16 @@
-// DOCS
-
-extern crate indexmap;
-extern crate regex;
-extern crate toml;
-extern crate time;
+#![doc = include_str!("../README.md")]
 
 #[macro_use]
 mod macros;
-pub mod git;
-pub mod fmt;
-mod sectionmap;
 mod clog;
+mod config;
 pub mod error;
+pub mod fmt;
+pub mod git;
 mod link_style;
+mod sectionmap;
 
-pub use clog::Clog;
-pub use sectionmap::SectionMap;
-pub use link_style::LinkStyle;
+pub use crate::{clog::Clog, link_style::LinkStyle, sectionmap::SectionMap};
 
 // The default config file
-const CLOG_CONFIG_FILE: &'static str = ".clog.toml";
+const DEFAULT_CONFIG_FILE: &str = ".clog.toml";
