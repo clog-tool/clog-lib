@@ -3,6 +3,7 @@
 #[macro_use]
 mod macros;
 mod clog;
+mod config;
 pub mod error;
 pub mod fmt;
 pub mod git;

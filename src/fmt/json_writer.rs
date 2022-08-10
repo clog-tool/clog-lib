@@ -1,7 +1,7 @@
 use std::{collections::BTreeMap, io};
 
 use log::debug;
-use time;
+use time::OffsetDateTime;
 
 use crate::{clog::Clog, error::Result, fmt::FormatWriter, git::Commit, sectionmap::SectionMap};
 
@@ -59,8 +59,9 @@ impl<'a> JsonWriter<'a> {
             options.subtitle.as_deref().unwrap_or("null"),
         )?;
 
-        let now = time::now_utc();
-        let date = now.strftime("%Y-%m-%d")?;
+        let now = OffsetDateTime::now_utc();
+        // unwrap because the format description is static
+        let date = now.format(&time::format_description::parse("[year]-[month]-[day]").unwrap())?;
         write!(self.0, "\"date\":\"{}\"}},", date).map_err(Into::into)
     }
 
@@ -97,7 +98,9 @@ impl<'a> JsonWriter<'a> {
                         .commit_link(&*entry.hash, options.repo.as_deref())
                 )?;
 
-                if !entry.closes.is_empty() {
+                if entry.closes.is_empty() {
+                    write!(self.0, "null,")?;
+                } else {
                     write!(self.0, "[")?;
                     let mut c_it = entry.closes.iter().peekable();
                     while let Some(issue) = c_it.next() {
@@ -115,11 +118,11 @@ impl<'a> JsonWriter<'a> {
                         }
                     }
                     write!(self.0, "],")?;
-                } else {
-                    write!(self.0, "null,")?;
                 }
                 write!(self.0, "\"breaks\":")?;
-                if !entry.breaks.is_empty() {
+                if entry.breaks.is_empty() {
+                    write!(self.0, "null}}")?;
+                } else {
                     write!(self.0, "[")?;
                     let mut c_it = entry.closes.iter().peekable();
                     while let Some(issue) = c_it.next() {
@@ -137,8 +140,6 @@ impl<'a> JsonWriter<'a> {
                         }
                     }
                     write!(self.0, "]}}")?;
-                } else {
-                    write!(self.0, "null}}")?;
                 }
                 if e_it.peek().is_some() {
                     debug!("There are more commits, adding comma");

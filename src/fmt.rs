@@ -1,6 +1,8 @@
 mod json_writer;
 mod md_writer;
 
+use std::{result::Result as StdResult, str::FromStr};
+
 use strum::{Display, EnumString};
 
 pub use self::{json_writer::JsonWriter, md_writer::MarkdownWriter};
@@ -11,6 +13,20 @@ use crate::{clog::Clog, error::Result, sectionmap::SectionMap};
 pub enum ChangelogFormat {
     Json,
     Markdown,
+}
+
+impl Default for ChangelogFormat {
+    fn default() -> Self { ChangelogFormat::Markdown }
+}
+
+impl<'de> serde::de::Deserialize<'de> for ChangelogFormat {
+    fn deserialize<D>(deserializer: D) -> StdResult<Self, D::Error>
+    where
+        D: serde::de::Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+        FromStr::from_str(&s).map_err(serde::de::Error::custom)
+    }
 }
 
 /// A trait that allows writing the results of a `clog` run which can then be

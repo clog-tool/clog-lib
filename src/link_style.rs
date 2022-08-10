@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use strum::{Display, EnumString};
 
 /// Determines the hyperlink style used in commit and issue links. Defaults to
@@ -17,6 +19,20 @@ pub enum LinkStyle {
     Gitlab,
     Stash,
     Cgit,
+}
+
+impl Default for LinkStyle {
+    fn default() -> Self { LinkStyle::Github }
+}
+
+impl<'de> serde::de::Deserialize<'de> for LinkStyle {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::de::Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+        FromStr::from_str(&s).map_err(serde::de::Error::custom)
+    }
 }
 
 impl LinkStyle {

@@ -1,6 +1,6 @@
 use std::{collections::BTreeMap, io};
 
-use time;
+use time::OffsetDateTime;
 
 use crate::{clog::Clog, error::Result, fmt::FormatWriter, git::Commit, sectionmap::SectionMap};
 
@@ -58,8 +58,9 @@ impl<'a> MarkdownWriter<'a> {
             format!("## {version} {subtitle}")
         };
 
-        let now = time::now_utc();
-        let date = now.strftime("%Y-%m-%d")?;
+        let now = OffsetDateTime::now_utc();
+        // unwrap because the format description is static
+        let date = now.format(&time::format_description::parse("[year]-[month]-[day]").unwrap())?;
         writeln!(
             self.0,
             "<a name=\"{version}\"></a>\n{version_text} ({date})\n",

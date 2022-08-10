@@ -6,14 +6,15 @@ use std::{
     io::{stdout, BufWriter, Read, Write},
     path::{Path, PathBuf},
     process::Command,
+    result::Result as StdResult,
 };
 
 use indexmap::IndexMap;
 use log::debug;
 use regex::Regex;
-use toml::{Parser, Value};
 
 use crate::{
+    config::RawCfg,
     error::{Error, Result},
     fmt::{ChangelogFormat, FormatWriter, JsonWriter, MarkdownWriter},
     git::{Commit, Commits},
@@ -22,36 +23,23 @@ use crate::{
     DEFAULT_CONFIG_FILE,
 };
 
+fn regex_default() -> Regex { regex!(r"^([^:\(]+?)(?:\(([^\)]*?)?\))?:(.*)") }
+fn closes_regex_default() -> Regex { regex!(r"(?:Closes|Fixes|Resolves)\s((?:#(\d+)(?:,\s)?)+)") }
+fn breaks_regex_default() -> Regex { regex!(r"(?:Breaks|Broke)\s((?:#(\d+)(?:,\s)?)+)") }
+fn breaking_regex_default() -> Regex { regex!(r"(?i:breaking)") }
+
 /// The base struct used to set options and interact with the library.
 #[derive(Debug, Clone)]
 pub struct Clog {
-    /// The grep search pattern used to find commits we are interested in
-    /// (Defaults to: "^ft|^feat|^fx|^fix|^perf|^unk|BREAKING\'")
-    pub grep: String,
-    /// The format of the commit output from `git log` (Defaults to:
-    /// "%H%n%s%n%b%n==END==")
-    pub format: String,
     /// The repository used for the base of hyper-links
     pub repo: Option<String>,
     /// The link style to used for commit and issue hyper-links
     pub link_style: LinkStyle,
-    /// The version tag for the release (Defaults to the short hash of the
-    /// latest commit)
-    pub version: Option<String>,
-    /// Whether or not this is a patch version update or not. Patch versions use
-    /// a lower markdown header (`###` instead of `##` for major and minor
-    /// releases)
-    pub patch_ver: bool,
-    /// The subtitle for the release
-    pub subtitle: Option<String>,
-    /// Where to start looking for commits using a hash (or short hash)
-    pub from: Option<String>,
-    /// Where to stop looking for commits using a hash (or short hash).
-    /// (Defaults to `HEAD`)
-    pub to: String,
     /// The file to use as the old changelog data to be appended to anything new
     /// found.
     pub infile: Option<String>,
+    /// The subtitle for the release
+    pub subtitle: Option<String>,
     /// The file to use as the changelog output file (Defaults to `stdout`)
     pub outfile: Option<String>,
     /// Maps out the sections and aliases used to trigger those sections. The
@@ -64,6 +52,14 @@ pub struct Clog {
     /// The git dir with all the meta-data (Typically the `.git` sub-directory
     /// of the project)
     pub git_dir: Option<PathBuf>,
+    /// The format to output the changelog in (Defaults to Markdown)
+    pub out_format: ChangelogFormat,
+    /// The grep search pattern used to find commits we are interested in
+    /// (Defaults to: "^ft|^feat|^fx|^fix|^perf|^unk|BREAKING\'")
+    pub grep: String,
+    /// The format of the commit output from `git log` (Defaults to:
+    /// "%H%n%s%n%b%n==END==")
+    pub format: String,
     /// The working directory of the git project (typically the project
     /// directory, or parent of the `.git` directory)
     pub git_work_tree: Option<PathBuf>,
@@ -74,8 +70,18 @@ pub struct Clog {
     /// The regex used to get closes issue links
     pub breaks_regex: Regex,
     pub breaking_regex: Regex,
-    /// The format to output the changelog in (Defaults to Markdown)
-    pub out_format: ChangelogFormat,
+    /// Where to start looking for commits using a hash (or short hash)
+    pub from: Option<String>,
+    /// Where to stop looking for commits using a hash (or short hash).
+    /// (Defaults to `HEAD`)
+    pub to: String,
+    /// The version tag for the release (Defaults to the short hash of the
+    /// latest commit)
+    pub version: Option<String>,
+    /// Whether or not this is a patch version update or not. Patch versions use
+    /// a lower markdown header (`###` instead of `##` for major and minor
+    /// releases)
+    pub patch_ver: bool,
 }
 
 impl Default for Clog {
@@ -119,11 +125,35 @@ impl Default for Clog {
             out_format: ChangelogFormat::Markdown,
             git_dir: None,
             git_work_tree: None,
-            regex: regex!(r"^([^:\(]+?)(?:\(([^\)]*?)?\))?:(.*)"),
-            closes_regex: regex!(r"(?:Closes|Fixes|Resolves)\s((?:#(\d+)(?:,\s)?)+)"),
-            breaks_regex: regex!(r"(?:Breaks|Broke)\s((?:#(\d+)(?:,\s)?)+)"),
-            breaking_regex: regex!(r"(?i:breaking)"),
+            regex: regex_default(),
+            closes_regex: closes_regex_default(),
+            breaks_regex: breaks_regex_default(),
+            breaking_regex: breaking_regex_default(),
         }
+    }
+}
+
+impl TryFrom<RawCfg> for Clog {
+    type Error = Error;
+
+    fn try_from(cfg: RawCfg) -> StdResult<Self, Self::Error> {
+        let mut clog = Self {
+            repo: cfg.clog.repository,
+            link_style: cfg.clog.link_style,
+            subtitle: cfg.clog.subtitle,
+            infile: cfg.clog.changelog.clone().or(cfg.clog.infile),
+            outfile: cfg.clog.changelog.or(cfg.clog.outfile),
+            section_map: cfg.sections,
+            component_map: cfg.components,
+            out_format: cfg.clog.output_format,
+            git_dir: cfg.clog.git_dir,
+            git_work_tree: cfg.clog.git_work_tree,
+            ..Self::default()
+        };
+        if cfg.clog.from_latest_tag {
+            clog.from = Some(clog.get_latest_tag()?);
+        }
+        Ok(clog)
     }
 }
 
@@ -140,71 +170,7 @@ impl Clog {
     pub fn new() -> Result<Self> {
         debug!("Creating default clog with new()");
         debug!("Trying default config file");
-        Clog::from_file(DEFAULT_CONFIG_FILE)
-    }
-
-    /// Creates a `Clog` struct using a specific git working directory and
-    /// project directory as well as a custom named TOML configuration file.
-    ///
-    /// # Example
-    ///
-    /// ```no_run
-    /// # use clog::Clog;
-    /// let clog =
-    ///     Clog::with_all("/myproject/.git", "/myproject", "/myproject/clog_conf.toml").unwrap();
-    /// ```
-    pub fn with_all<P: AsRef<Path>>(git_dir: P, work_tree: P, cfg_file: P) -> Result<Self> {
-        debug!(
-            "Creating clog with \n\tgit_dir: {:?}\n\twork_tree: {:?}\n\tcfg_file: {:?}",
-            git_dir.as_ref(),
-            work_tree.as_ref(),
-            cfg_file.as_ref()
-        );
-        let clog = Clog::with_dirs(git_dir, work_tree)?;
-        clog.try_config_file(cfg_file.as_ref())
-    }
-
-    /// Creates a `Clog` struct using a specific git working directory OR
-    /// project directory as well as a custom named TOML configuration file.
-    ///
-    /// **NOTE:** If you specify a `.git` folder the parent will be used as the
-    /// working tree, and vice versa.
-    ///
-    /// # Example
-    ///
-    /// ```no_run
-    /// # use clog::Clog;
-    /// let clog = Clog::with_dir_and_file("/myproject", "/myproject/clog_conf.toml").unwrap();
-    /// ```
-    pub fn with_dir_and_file<P: AsRef<Path>>(dir: P, cfg_file: P) -> Result<Self> {
-        debug!(
-            "Creating clog with \n\tdir: {:?}\n\tcfg_file: {:?}",
-            dir.as_ref(),
-            cfg_file.as_ref()
-        );
-        let clog = Clog::_with_dir(dir)?;
-        clog.try_config_file(cfg_file.as_ref())
-    }
-
-    fn _with_dir<P: AsRef<Path>>(dir: P) -> Result<Self> {
-        debug!("Creating private clog with \n\tdir: {:?}", dir.as_ref());
-        let mut clog = Clog::default();
-        if dir.as_ref().ends_with(".git") {
-            debug!("dir ends with .git");
-            let mut wd = dir.as_ref().to_path_buf();
-            clog.git_dir = Some(wd.clone());
-            wd.pop();
-            clog.git_work_tree = Some(wd);
-        } else {
-            debug!("dir doesn't end with .git");
-            let mut gd = dir.as_ref().to_path_buf();
-            clog.git_work_tree = Some(gd.clone());
-            gd.push(".git");
-            clog.git_dir = Some(gd);
-        }
-
-        debug!("Returning clog:\n{:?}", clog);
-        Ok(clog)
+        Clog::from_config(DEFAULT_CONFIG_FILE)
     }
 
     /// Creates a `Clog` struct using a specific git working directory OR
@@ -218,39 +184,11 @@ impl Clog {
     ///
     /// ```no_run
     /// # use clog::Clog;
-    /// let clog = Clog::with_dir("/myproject").unwrap();
+    /// let clog = Clog::with_git_work_tree("/myproject").unwrap();
     /// ```
-    pub fn with_dir<P: AsRef<Path>>(dir: P) -> Result<Self> {
+    pub fn with_git_work_tree<P: AsRef<Path>>(dir: P) -> Result<Self> {
         debug!("Creating clog with \n\tdir: {:?}", dir.as_ref());
-        let clog = Clog::_with_dir(dir)?;
-        clog.try_config_file(Path::new(DEFAULT_CONFIG_FILE))
-    }
-
-    /// Creates a `Clog` struct using a specific git working directory AND a
-    /// project directory. Searches for the default configuration TOML file
-    /// `.clog.toml`
-    ///
-    /// **NOTE:** If you specify a `.git` folder the parent will be used as the
-    /// working tree, and vice versa.
-    ///
-    /// # Example
-    ///
-    /// ```no_run
-    /// # use clog::Clog;
-    /// let clog = Clog::with_dirs("/myproject", "/myproject/.git").unwrap();
-    /// ```
-    pub fn with_dirs<P: AsRef<Path>>(git_dir: P, work_tree: P) -> Result<Self> {
-        debug!(
-            "Creating clog with \n\tgit_dir: {:?}\n\twork_tree: {:?}",
-            git_dir.as_ref(),
-            work_tree.as_ref()
-        );
-        let clog = Clog {
-            git_dir: Some(git_dir.as_ref().to_path_buf()),
-            git_work_tree: Some(work_tree.as_ref().to_path_buf()),
-            ..Clog::default()
-        };
-        clog.try_config_file(Path::new(DEFAULT_CONFIG_FILE))
+        Clog::_new(Some(dir.as_ref()), None)
     }
 
     /// Creates a `Clog` struct a custom named TOML configuration file. Sets the
@@ -264,141 +202,68 @@ impl Clog {
     ///
     /// ```no_run
     /// # use clog::Clog;
-    /// let clog = Clog::from_file("/myproject/clog_conf.toml").unwrap();
+    /// let clog = Clog::from_config("/myproject/clog_conf.toml").unwrap();
     /// ```
-    pub fn from_file<P: AsRef<Path>>(file: P) -> Result<Self> {
-        debug!("Creating clog with \n\tfile: {:?}", file.as_ref());
+    pub fn from_config<P: AsRef<Path>>(cfg: P) -> Result<Self> {
+        debug!("Creating clog with \n\tfile: {:?}", cfg.as_ref());
+        Clog::_new(None, Some(cfg.as_ref()))
+    }
+
+    fn _new(dir: Option<&Path>, cfg: Option<&Path>) -> Result<Self> {
+        debug!("Creating private clog with \n\tdir: {:?}", dir);
         // Determine if the cfg_file was relative or not
-        let cfg_file = if file.as_ref().is_relative() {
-            debug!("file is relative");
-            let cwd = match env::current_dir() {
-                Ok(d) => d,
-                Err(..) => return Err(Error::CurrentDir),
-            };
-            Path::new(&cwd).join(file.as_ref())
+        let cfg = if let Some(cfg) = cfg {
+            if cfg.is_relative() {
+                debug!("file is relative");
+                let cwd = match env::current_dir() {
+                    Ok(d) => d,
+                    Err(..) => return Err(Error::CurrentDir),
+                };
+                Path::new(&cwd).join(cfg)
+            } else {
+                debug!("file is absolute");
+                cfg.to_path_buf()
+            }
         } else {
-            debug!("file is absolute");
-            file.as_ref().to_path_buf()
+            Path::new(DEFAULT_CONFIG_FILE).to_path_buf()
         };
 
-        // We assume whatever dir the .clog.toml file is also contains the git metadata
-        let mut dir = cfg_file.clone();
+        // if dir is None we assume whatever dir the cfg file is also contains the git
+        // metadata
+        let mut dir = dir.unwrap_or(&cfg).to_path_buf();
         dir.pop();
-        Clog::with_dir_and_file(dir, cfg_file)
+        let git_dir;
+        let git_work_tree;
+        if dir.ends_with(".git") {
+            debug!("dir ends with .git");
+            let mut wd = dir.clone();
+            git_dir = Some(wd.clone());
+            wd.pop();
+            git_work_tree = Some(wd);
+        } else {
+            debug!("dir doesn't end with .git");
+            let mut gd = dir.clone();
+            git_work_tree = Some(gd.clone());
+            gd.push(".git");
+            git_dir = Some(gd);
+        }
+        Ok(Clog {
+            git_dir,
+            git_work_tree,
+            ..Clog::try_config_file(&cfg)?
+        })
     }
 
     // Try and create a clog object from a config file
-    fn try_config_file(mut self, cfg_file: &Path) -> Result<Self> {
+    fn try_config_file(cfg_file: &Path) -> Result<Self> {
         debug!("Trying to use config file: {:?}", cfg_file);
         let mut toml_f = File::open(cfg_file)?;
         let mut toml_s = String::with_capacity(100);
 
         toml_f.read_to_string(&mut toml_s)?;
 
-        toml_s.shrink_to_fit();
-
-        let mut toml = Parser::new(&toml_s[..]);
-
-        let toml_table = match toml.parse() {
-            Some(table) => table,
-            None => {
-                return Err(Error::ConfigParse(cfg_file.to_path_buf()));
-            }
-        };
-
-        let clog_table = match toml_table.get("clog") {
-            Some(table) => table,
-            None => {
-                return Err(Error::ConfigFormat(cfg_file.to_path_buf()));
-            }
-        };
-
-        let toml_from_latest = clog_table
-            .lookup("from-latest-tag")
-            .unwrap_or(&Value::Boolean(false))
-            .as_bool();
-        let toml_repo = clog_table
-            .lookup("repository")
-            .map(|val| val.as_str().unwrap_or("").to_owned())
-            .or_else(|| Some(String::new()));
-        let toml_subtitle = clog_table
-            .lookup("subtitle")
-            .map(|val| val.as_str().unwrap_or("").to_owned())
-            .or_else(|| Some(String::new()));
-        let toml_link_style = match clog_table.lookup("link-style") {
-            Some(val) => match val.as_str().unwrap_or("github").parse::<LinkStyle>() {
-                Ok(style) => Some(style),
-                Err(..) => {
-                    return Err(Error::LinkStyle);
-                }
-            },
-            None => Some(LinkStyle::Github),
-        };
-        let toml_outfile = clog_table
-            .lookup("outfile")
-            .map(|val| val.as_str().unwrap_or("").to_owned());
-        let toml_infile = clog_table
-            .lookup("infile")
-            .map(|val| val.as_str().unwrap_or("").to_owned());
-        let toml_changelog = clog_table
-            .lookup("changelog")
-            .map(|val| val.as_str().unwrap_or("").to_owned());
-        let toml_format = clog_table
-            .lookup("output-format")
-            .map(|val| val.as_str().unwrap_or("").to_owned());
-        if let Some(table) = toml_table.get("sections") {
-            if let Some(table) = table.as_table() {
-                for (sec, val) in table.iter() {
-                    if let Some(vec) = val.as_slice() {
-                        let alias_vec = vec
-                            .iter()
-                            .map(|v| v.as_str().unwrap_or("").to_owned())
-                            .collect::<Vec<_>>();
-                        self.section_map.insert(sec.to_owned(), alias_vec);
-                    }
-                }
-            }
-        }
-        if let Some(table) = toml_table.get("components") {
-            if let Some(table) = table.as_table() {
-                for (comp, val) in table.iter() {
-                    if let Some(vec) = val.as_slice() {
-                        let alias_vec = vec
-                            .iter()
-                            .map(|v| v.as_str().unwrap_or("").to_owned())
-                            .collect::<Vec<_>>();
-                        self.component_map.insert(comp.to_owned(), alias_vec);
-                    }
-                }
-            }
-        }
-
-        if toml_from_latest.unwrap_or(false) {
-            self.from = Some(self.get_latest_tag()?);
-        }
-
-        if let Some(ls) = toml_link_style {
-            self.link_style = ls;
-        }
-
-        self.repo = toml_repo;
-        self.subtitle = toml_subtitle;
-        self.outfile = toml_outfile;
-        self.infile = toml_infile;
-
-        if let Some(format) = toml_format {
-            self.out_format = format
-                .parse::<ChangelogFormat>()
-                .map_err(|_| Error::ChangelogFormat(format))?;
-        }
-
-        if let Some(ref cl) = toml_changelog {
-            self.outfile = Some(cl.to_owned());
-            self.infile = Some(cl.to_owned());
-        }
-
-        debug!("Returning clog:\n{:?}", self);
-        Ok(self)
+        let cfg: RawCfg = toml::from_str(&toml_s[..])?;
+        cfg.try_into()
     }
 
     /// Sets the grep search pattern for finding commits.
@@ -409,6 +274,7 @@ impl Clog {
     /// # use clog::Clog;
     /// let clog = Clog::new().unwrap().grep("BREAKS");
     /// ```
+    #[must_use]
     pub fn grep<S: Into<String>>(mut self, g: S) -> Clog {
         self.grep = g.into();
         self
@@ -422,6 +288,7 @@ impl Clog {
     /// # use clog::Clog;
     /// let clog = Clog::new().unwrap().format("%H%n%n==END==");
     /// ```
+    #[must_use]
     pub fn format<S: Into<String>>(mut self, f: S) -> Clog {
         self.format = f.into();
         self
@@ -442,6 +309,7 @@ impl Clog {
     ///     .unwrap()
     ///     .repository("https://github.com/thoughtram/clog");
     /// ```
+    #[must_use]
     pub fn repository<S: Into<String>>(mut self, r: S) -> Clog {
         self.repo = Some(r.into());
         self
@@ -458,6 +326,7 @@ impl Clog {
     /// # use clog::{Clog, LinkStyle};
     /// let clog = Clog::new().unwrap().link_style(LinkStyle::Stash);
     /// ```
+    #[must_use]
     pub fn link_style(mut self, l: LinkStyle) -> Clog {
         self.link_style = l;
         self
@@ -474,6 +343,7 @@ impl Clog {
     /// # use clog::Clog;
     /// let clog = Clog::new().unwrap().version("v0.2.1-beta3");
     /// ```
+    #[must_use]
     pub fn version<S: Into<String>>(mut self, v: S) -> Clog {
         self.version = Some(v.into());
         self
@@ -487,6 +357,7 @@ impl Clog {
     /// # use clog::Clog;
     /// let clog = Clog::new().unwrap().subtitle("My Awesome Release Title");
     /// ```
+    #[must_use]
     pub fn subtitle<S: Into<String>>(mut self, s: S) -> Clog {
         self.subtitle = Some(s.into());
         self
@@ -504,6 +375,7 @@ impl Clog {
     /// # use clog::Clog;
     /// let clog = Clog::new().unwrap().from("6d8183f");
     /// ```
+    #[must_use]
     pub fn from<S: Into<String>>(mut self, f: S) -> Clog {
         self.from = Some(f.into());
         self
@@ -518,6 +390,7 @@ impl Clog {
     /// # use clog::Clog;
     /// let clog = Clog::new().unwrap().to("123abc4d");
     /// ```
+    #[must_use]
     pub fn to<S: Into<String>>(mut self, t: S) -> Clog {
         self.to = t.into();
         self
@@ -535,6 +408,7 @@ impl Clog {
     /// # use clog::Clog;
     /// let clog = Clog::new().unwrap().changelog("/myproject/my_changelog.md");
     /// ```
+    #[must_use]
     pub fn changelog<S: Into<String> + Clone>(mut self, c: S) -> Clog {
         self.infile = Some(c.clone().into());
         self.outfile = Some(c.into());
@@ -558,6 +432,7 @@ impl Clog {
     /// # use clog::Clog;
     /// let clog = Clog::new().unwrap().outfile("/myproject/my_changelog.md");
     /// ```
+    #[must_use]
     pub fn outfile<S: Into<String>>(mut self, c: S) -> Clog {
         self.outfile = Some(c.into());
         self
@@ -582,6 +457,7 @@ impl Clog {
     ///     .unwrap()
     ///     .infile("/myproject/my_old_changelog.md");
     /// ```
+    #[must_use]
     pub fn infile<S: Into<String>>(mut self, c: S) -> Clog {
         self.infile = Some(c.into());
         self
@@ -596,6 +472,7 @@ impl Clog {
     /// # use clog::Clog;
     /// let clog = Clog::new().unwrap().git_dir("/myproject/.git");
     /// ```
+    #[must_use]
     pub fn git_dir<P: AsRef<Path>>(mut self, d: P) -> Clog {
         self.git_dir = Some(d.as_ref().to_path_buf());
         self
@@ -609,6 +486,7 @@ impl Clog {
     /// # use clog::Clog;
     /// let clog = Clog::new().unwrap().git_work_tree("/myproject");
     /// ```
+    #[must_use]
     pub fn git_work_tree<P: AsRef<Path>>(mut self, d: P) -> Clog {
         self.git_work_tree = Some(d.as_ref().to_path_buf());
         self
@@ -625,6 +503,7 @@ impl Clog {
     /// # use clog::Clog;
     /// let clog = Clog::new().unwrap().patch_ver(true);
     /// ```
+    #[must_use]
     pub fn patch_ver(mut self, p: bool) -> Clog {
         self.patch_ver = p;
         self
@@ -638,6 +517,7 @@ impl Clog {
     /// # use clog::{fmt::ChangelogFormat,Clog};
     /// let clog = Clog::new().unwrap().output_format(ChangelogFormat::Json);
     /// ```
+    #[must_use]
     pub fn output_format(mut self, f: ChangelogFormat) -> Clog {
         self.out_format = f;
         self
@@ -671,61 +551,65 @@ impl Clog {
 
         Ok(String::from_utf8_lossy(&output.stdout)
             .split("\n==END==\n")
-            .map(|commit_str| self.parse_raw_commit(commit_str))
+            .filter_map(|commit_str| self.parse_raw_commit(commit_str).ok())
             .filter(|entry| entry.commit_type != "Unknown")
             .collect())
     }
 
     #[doc(hidden)]
-    pub fn parse_raw_commit(&self, commit_str: &str) -> Commit {
+    pub fn parse_raw_commit(&self, commit_str: &str) -> Result<Commit> {
         let mut lines = commit_str.lines();
-
-        let hash = lines.next().unwrap_or("").to_owned();
+        let hash = lines.next().unwrap_or_default();
 
         let (subject, component, commit_type) =
             match lines.next().and_then(|s| self.regex.captures(s)) {
                 Some(caps) => {
-                    let commit_type = self.section_for(caps.at(1).unwrap_or("")).to_owned();
-                    let component =
-                        caps.at(2)
-                            .map(|component| match self.component_for(component) {
-                                Some(alias) => alias.clone(),
-                                None => component.to_owned(),
-                            });
-                    let subject = caps.at(3);
+                    let section = caps.get(1).map(|c| c.as_str()).unwrap_or_default();
+                    let commit_type = self
+                        .section_for(section)
+                        .ok_or(Error::UnknownComponent(section.into()))?;
+                    let component = caps.get(2).map(|component| {
+                        let component = component.as_str();
+                        match self.component_for(component) {
+                            Some(alias) => alias.clone(),
+                            None => component.to_owned(),
+                        }
+                    });
+                    let subject = caps.get(3).map(|c| c.as_str());
                     (subject, component, commit_type)
                 }
                 None => (
-                    Some(""),
-                    Some("".to_owned()),
-                    self.section_for("unk").clone(),
+                    None,
+                    None,
+                    self.section_for("unk")
+                        .ok_or(Error::UnknownComponent("unk".into()))?,
                 ),
             };
         let mut closes = vec![];
         let mut breaks = vec![];
         for line in lines {
             if let Some(caps) = self.closes_regex.captures(line) {
-                if let Some(cap) = caps.at(2) {
-                    closes.push(cap.to_owned());
+                if let Some(cap) = caps.get(2) {
+                    closes.push(cap.as_str().to_owned());
                 }
             }
             if let Some(caps) = self.breaks_regex.captures(line) {
-                if let Some(cap) = caps.at(2) {
-                    breaks.push(cap.to_owned());
+                if let Some(cap) = caps.get(2) {
+                    breaks.push(cap.as_str().to_owned());
                 }
             } else if self.breaking_regex.captures(line).is_some() {
-                breaks.push("".to_owned());
+                breaks.push(String::new());
             }
         }
 
-        Commit {
-            hash,
+        Ok(Commit {
+            hash: hash.to_string(),
             subject: subject.unwrap().to_owned(),
-            component: component.unwrap_or_else(|| "".to_string()),
+            component: component.unwrap_or_default(),
             closes,
             breaks,
-            commit_type,
-        }
+            commit_type: commit_type.to_string(),
+        })
     }
 
     /// Retrieves the latest tag from the git directory
@@ -840,15 +724,13 @@ impl Clog {
     /// # use clog::Clog;
     /// let clog = Clog::new().unwrap();
     /// let section = clog.section_for("feat");
-    /// assert_eq!("Features", section);
+    /// assert_eq!(Some("Features"), section);
     /// ```
-    pub fn section_for(&self, alias: &str) -> &String {
+    pub fn section_for(&self, alias: &str) -> Option<&str> {
         self.section_map
             .iter()
-            .filter(|&(_, v)| v.iter().any(|s| s == alias))
-            .map(|(k, _)| k)
-            .next()
-            .unwrap_or_else(|| self.section_map.keys().find(|&k| k == "Unknown").unwrap())
+            .find(|&(_, v)| v.iter().any(|s| s == alias))
+            .map(|(k, _)| &**k)
     }
 
     /// Retrieves the full component name for a given alias (if one is defined)

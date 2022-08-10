@@ -65,7 +65,7 @@ use clog::Clog;
 
 fn main() {
     // Create the struct
-    let mut clog = Clog::with_dir("~/clog")
+    let mut clog = Clog::with_git_work_tree("~/clog")
         .unwrap()
         .repository("https://github.com/thoughtram/clog")
         .subtitle("Crazy Dog")
@@ -144,6 +144,7 @@ with the section name and aliases you'd like to use in your commit messages:
 ```toml
 [sections]
 MySection = ["mysec", "ms"]
+"Another Section" = ["as"]
 ```
 
 Now if you make a commit message such as `mysec(Component): some message` or
