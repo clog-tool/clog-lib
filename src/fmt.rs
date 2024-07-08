@@ -8,15 +8,12 @@ use strum::{Display, EnumString};
 pub use self::{json_writer::JsonWriter, md_writer::MarkdownWriter};
 use crate::{clog::Clog, error::Result, sectionmap::SectionMap};
 
-#[derive(Copy, Clone, PartialEq, Eq, Debug, EnumString, Display)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug, Default, EnumString, Display)]
 #[strum(ascii_case_insensitive)]
 pub enum ChangelogFormat {
     Json,
+    #[default]
     Markdown,
-}
-
-impl Default for ChangelogFormat {
-    fn default() -> Self { ChangelogFormat::Markdown }
 }
 
 impl<'de> serde::de::Deserialize<'de> for ChangelogFormat {
