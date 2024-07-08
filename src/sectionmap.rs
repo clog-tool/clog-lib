@@ -46,15 +46,12 @@ impl SectionMap {
                 let comp_map = sm
                     .sections
                     .entry("Breaking Changes".to_owned())
-                    .or_insert(BTreeMap::new());
-                let sec_map = comp_map.entry(entry.component.clone()).or_insert(vec![]);
+                    .or_default();
+                let sec_map = comp_map.entry(entry.component.clone()).or_default();
                 sec_map.push(entry.clone());
             }
-            let comp_map = sm
-                .sections
-                .entry(entry.commit_type.clone())
-                .or_insert(BTreeMap::new());
-            let sec_map = comp_map.entry(entry.component.clone()).or_insert(vec![]);
+            let comp_map = sm.sections.entry(entry.commit_type.clone()).or_default();
+            let sec_map = comp_map.entry(entry.component.clone()).or_default();
             sec_map.push(entry);
         }
 
