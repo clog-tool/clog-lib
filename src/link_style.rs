@@ -12,17 +12,14 @@ use strum::{Display, EnumString};
 /// let clog = Clog::new().unwrap();
 /// clog.link_style(LinkStyle::Stash);
 /// ```
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Display, EnumString)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Default, Display, EnumString)]
 #[strum(ascii_case_insensitive)]
 pub enum LinkStyle {
+    #[default]
     Github,
     Gitlab,
     Stash,
     Cgit,
-}
-
-impl Default for LinkStyle {
-    fn default() -> Self { LinkStyle::Github }
 }
 
 impl<'de> serde::de::Deserialize<'de> for LinkStyle {
