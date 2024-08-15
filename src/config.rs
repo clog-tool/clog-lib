@@ -9,7 +9,7 @@ use crate::{fmt::ChangelogFormat, link_style::LinkStyle};
 pub struct RawCfg {
     pub clog: RawClogCfg,
     #[serde(default)]
-    pub sections: IndexMap<String, Vec<String>>,
+    pub sections: Option<IndexMap<String, Vec<String>>>,
     #[serde(default)]
     pub components: HashMap<String, Vec<String>>,
 }
@@ -33,7 +33,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn from_config() {
+    fn from_config_full() {
         let cfg = include_str!("../examples/clog.toml");
         let res = toml::from_str(cfg);
         assert!(res.is_ok(), "{res:?}");
@@ -52,18 +52,29 @@ mod tests {
         assert_eq!(cfg.clog.git_work_tree, Some("/myproject".into()));
         assert_eq!(cfg.clog.git_dir, Some("/myproject/.git".into()));
         assert!(cfg.clog.from_latest_tag);
+        assert!(cfg.sections.is_some());
         assert_eq!(
-            cfg.sections.get("MySection"),
+            cfg.sections.as_ref().unwrap().get("MySection"),
             Some(&vec!["mysec".into(), "ms".into()])
         );
         assert_eq!(
-            cfg.sections.get("Another Section"),
+            cfg.sections.as_ref().unwrap().get("Another Section"),
             Some(&vec!["another".into()])
         );
         assert_eq!(
             cfg.components.get("MyLongComponentName"),
             Some(&vec!["long".into(), "comp".into()])
         );
+    }
+
+    #[test]
+    fn from_config_no_sections() {
+        let cfg = include_str!("../examples/clog-only.toml");
+        let res = toml::from_str(cfg);
+        assert!(res.is_ok(), "{res:?}");
+        let cfg: RawCfg = res.unwrap();
+
+        assert!(cfg.sections.is_none());
     }
 
     #[test]

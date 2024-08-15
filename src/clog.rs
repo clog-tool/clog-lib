@@ -27,6 +27,21 @@ fn regex_default() -> Regex { regex!(r"^([^:\(]+?)(?:\(([^\)]*?)?\))?:(.*)") }
 fn closes_regex_default() -> Regex { regex!(r"(?:Closes|Fixes|Resolves)\s((?:#(\d+)(?:,\s)?)+)") }
 fn breaks_regex_default() -> Regex { regex!(r"(?:Breaks|Broke)\s((?:#(\d+)(?:,\s)?)+)") }
 fn breaking_regex_default() -> Regex { regex!(r"(?i:breaking)") }
+fn sections_default() -> IndexMap<String, Vec<String>> {
+    let mut sections = IndexMap::new();
+    sections.insert(
+        "Features".to_owned(),
+        vec!["ft".to_owned(), "feat".to_owned()],
+    );
+    sections.insert(
+        "Bug Fixes".to_owned(),
+        vec!["fx".to_owned(), "fix".to_owned()],
+    );
+    sections.insert("Performance".to_owned(), vec!["perf".to_owned()]);
+    sections.insert("Unknown".to_owned(), vec!["unk".to_owned()]);
+    sections.insert("Breaking Changes".to_owned(), vec!["breaks".to_owned()]);
+    sections
+}
 
 /// The base struct used to set options and interact with the library.
 #[derive(Debug, Clone)]
@@ -87,18 +102,7 @@ pub struct Clog {
 impl Default for Clog {
     fn default() -> Self {
         debug!("Creating default clog with Clog::default()");
-        let mut sections = IndexMap::new();
-        sections.insert(
-            "Features".to_owned(),
-            vec!["ft".to_owned(), "feat".to_owned()],
-        );
-        sections.insert(
-            "Bug Fixes".to_owned(),
-            vec!["fx".to_owned(), "fix".to_owned()],
-        );
-        sections.insert("Performance".to_owned(), vec!["perf".to_owned()]);
-        sections.insert("Unknown".to_owned(), vec!["unk".to_owned()]);
-        sections.insert("Breaking Changes".to_owned(), vec!["breaks".to_owned()]);
+        let sections = sections_default();
 
         Clog {
             grep: format!(
@@ -143,7 +147,7 @@ impl TryFrom<RawCfg> for Clog {
             subtitle: cfg.clog.subtitle,
             infile: cfg.clog.changelog.clone().or(cfg.clog.infile),
             outfile: cfg.clog.changelog.or(cfg.clog.outfile),
-            section_map: cfg.sections,
+            section_map: cfg.sections.unwrap_or_else(sections_default),
             component_map: cfg.components,
             out_format: cfg.clog.output_format,
             git_dir: cfg.clog.git_dir,
@@ -604,7 +608,7 @@ impl Clog {
 
         Ok(Commit {
             hash: hash.to_string(),
-            subject: subject.unwrap().to_owned(),
+            subject: subject.unwrap_or_default().to_owned(),
             component: component.unwrap_or_default(),
             closes,
             breaks,
