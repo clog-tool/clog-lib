@@ -55,7 +55,7 @@ pub struct Clog {
     /// The format to output the changelog in (Defaults to Markdown)
     pub out_format: ChangelogFormat,
     /// The grep search pattern used to find commits we are interested in
-    /// (Defaults to: "^ft|^feat|^fx|^fix|^perf|^unk|BREAKING\'")
+    /// (Defaults to: "^ft|^feat|^fx|^fix|^perf|^unk|^breaks|BREAKING\'")
     pub grep: String,
     /// The format of the commit output from `git log` (Defaults to:
     /// "%H%n%s%n%b%n==END==")
@@ -105,9 +105,7 @@ impl Default for Clog {
                 "{}BREAKING'",
                 sections
                     .values()
-                    .map(|v| v
-                        .iter()
-                        .fold(String::new(), |acc, al| { acc + &format!("^{}|", al)[..] }))
+                    .flatten()
                     .fold(String::new(), |acc, al| { acc + &format!("^{}|", al)[..] })
             ),
             format: "%H%n%s%n%b%n==END==".to_string(),
@@ -914,5 +912,19 @@ impl Clog {
         let sm = SectionMap::from_commits(self.get_commits()?);
 
         writer.write_changelog(self, &sm)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn default_grep() {
+        let clog = Clog::default();
+        assert_eq!(
+            "^ft|^feat|^fx|^fix|^perf|^unk|^breaks|BREAKING\'",
+            clog.grep.as_str()
+        );
     }
 }
